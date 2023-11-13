@@ -16,7 +16,8 @@ body {
   width: 100lvw;
   height: 100lvh;
 }
-    body.noscroll {
+body.noscroll {
+  min-height: 110vh;
   height: 100%;
   overflow: hidden; /* make sure iOS does not try to scroll the body first */
 }
@@ -44,7 +45,7 @@ body {
 }
   </style>
 </head>
-<body class="noscroll fixed-wrapper fixed-content" style="min-height: 100vh;">
+<body class="noscroll">
 <div>測試page</div>
 <textarea></textarea>
 </body>  
