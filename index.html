@@ -1,8 +1,24 @@
 <html>
 <head>
   <meta data-n-head="ssr" name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <style>
+    :root                  { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+
+:root, body {
+  margin: 0;
+  padding: 0;
+  border: initial;
+}
+
+body {
+  overflow: hidden;
+  width: 100lvw;
+  height: 100lvh;
+}
+  </style>
 </head>
-<body style="width:300px;height:300px;">
+<body>
 <div>測試page</div>
 <textarea></textarea>
 </body>  
