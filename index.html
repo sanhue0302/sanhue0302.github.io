@@ -16,9 +16,35 @@ body {
   width: 100lvw;
   height: 100lvh;
 }
+    body.noscroll {
+  height: 100%;
+  overflow: hidden; /* make sure iOS does not try to scroll the body first */
+}
+
+/* your wrapper, most likely mobile menu */
+.fixed-wrapper {
+  width: 100%;
+  position: fixed;
+  top: 0px; /* adding px unit also seems to be important for whatever reason, albeit I think we all concur that this should be unitless */
+  left: 0px;
+  bottom: 0px;
+  height: 100vh;
+  overflow: scroll; /* not auto! */
+
+  /* magic mobile viewport iOS bug fix */
+  /* also see: https://css-tricks.com/css-fix-for-100vh-in-mobile-webkit/ */
+  /* also see: https://allthingssmitty.com/2020/05/11/css-fix-for-100vh-in-mobile-webkit/ */
+  height: -webkit-fill-available;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* your actual content, which is higher than the outer element */
+.fixed-wrapper .fixed-content {
+  min-height: 100vh; /* this is the magic, actually bug abusing iOS here */
+}
   </style>
 </head>
-<body>
+<body class="noscroll fixed-wrapper fixed-content">
 <div>測試page</div>
 <textarea></textarea>
 </body>  
