@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>弓箭手射擊遊戲（手方向修正，箭身延長）</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin-top: 20px;
+      background: #eef2f3;
+    }
+    canvas {
+      background: #a0d8f7;
+      border: 2px solid #333;
+      display: block;
+      margin: 10px auto;
+    }
+    #startBtn, #restartBtn {
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background: #4caf50;
+      color: white;
+      margin-top: 10px;
+    }
+    #restartBtn {
+      background: #f44336;
+    }
+    #info {
+      font-size: 20px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>弓箭手射擊遊戲（手方向修正，箭身延長）</h1>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <div id="info">時間: 60 秒｜分數: 0</div>
+  <button id="startBtn">開始遊戲</button>
+  <button id="restartBtn" style="display:none;">重新開始</button>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const info = document.getElementById('info');
+    const WIDTH = canvas.width;
+    const HEIGHT = canvas.height;
+
+    let gameRunning = false;
+    let score = 0;
+    let timeLeft = 60; // 秒
+    let timerId;
+
+    const archerX = 50;
+    const archerY = HEIGHT - 100;
+
+    const gravity = 0.5;
+    let arrow = null;
+    let enemy = null;
+
+    let mouseX = archerX + 100;
+    let mouseY = archerY;
+
+    const bowRadius = 50;
+    const maxPullDistance = 50;
+
+    let pullX = 0;
+    let pullY = 0;
+
+    canvas.addEventListener('mousemove', (e) => {
+      if(!gameRunning) return;
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      mouseX = Math.min(Math.max(mouseX, archerX), archerX + 150);
+      mouseY = Math.min(Math.max(mouseY, archerY - 100), archerY + 30);
+    });
+
+    canvas.addEventListener('click', () => {
+      if(!gameRunning) return;
+      if(arrow === null){
+        shootArrow();
+      }
+    });
+
+    let shootX = archerX;
+    let shootY = archerY;
+
+    function shootArrow(){
+      let dy = mouseY - archerY;
+      let dx = mouseX - archerX;
+      let angle = Math.atan2(dy, dx);
+      shootX = pullX;
+      shootY = pullY;
+      let speed = 15;
+      arrow = {
+        x: shootX,
+        y: shootY,
+        vx: speed * Math.cos(angle),
+        vy: speed * Math.sin(angle),
+        angle: angle
+      };
+    }
+
+    function spawnEnemy() {
+      let enemyX = Math.random() * (WIDTH - 400) + 500;
+      let enemyY = Math.random() * (HEIGHT - 150) + 50;
+      enemy = {x: enemyX, y: enemyY, radius: 20};
+    }
+
+    function updateInfo(){
+      info.textContent = `時間: ${timeLeft} 秒 ｜ 分數: ${score}`;
+    }
+
+    function gameLoop(){
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+      drawArcher();
+
+      if(enemy){
+        drawEnemy(enemy.x, enemy.y);
+      }
+
+      if(arrow){
+        arrow.vy += gravity * 0.1;
+        arrow.x += arrow.vx;
+        arrow.y += arrow.vy;
+        arrow.angle = Math.atan2(arrow.vy, arrow.vx);
+
+        // 射出箭身長度用最大拉弦距離保持箭身長度一致
+        drawArrow(arrow.x, arrow.y, arrow.angle, maxPullDistance);
+
+        if(enemy && distance(arrow.x, arrow.y, enemy.x, enemy.y) < enemy.radius){
+          score++;
+          arrow = null;
+          spawnEnemy();
+          updateInfo();
+        }
+
+        if(arrow.x > WIDTH || arrow.y > HEIGHT || arrow.y < 0){
+          arrow = null;
+        }
+      } else {
+        let dx = mouseX - archerX;
+        let dy = mouseY - archerY;
+        let angle = Math.atan2(dy, dx);
+        let dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
+        drawArrow(shootX, shootY, angle, dist);
+      }
+
+      if(gameRunning){
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function drawArcher(){
+      let dy = mouseY - archerY;
+      let dx = mouseX - archerX;
+      let angle = Math.atan2(dy, dx);
+      let dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
+
+      pullX = archerX + Math.cos(angle) * bowRadius - Math.cos(angle) * dist;
+      pullY = archerY + Math.sin(angle) * bowRadius - Math.sin(angle) * dist;
+
+      ctx.save();
+      drawBody();
+
+      ctx.translate(archerX, archerY);
+      ctx.rotate(angle);
+
+      ctx.strokeStyle = 'brown';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(0, 0, bowRadius, Math.PI * 3 / 2, Math.PI / 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -bowRadius);
+      ctx.lineTo(-dist, 0);
+      ctx.lineTo(0, bowRadius);
+      ctx.stroke();
+
+      // 左手握弓固定畫出
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#654321';
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.lineTo(-10, 40);
+      ctx.stroke();
+
+      ctx.restore();
+
+      drawRightHand(pullX, pullY, angle);
+      drawLegs();
+    }
+
+    function drawBody(){
+      ctx.fillStyle = '#654321';
+      ctx.beginPath();
+      ctx.arc(archerX, archerY - 40, 15, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillRect(archerX - 10, archerY - 40, 20, 60);
+    }
+
+    function drawRightHand(x, y, angle){
+      ctx.save();
+      ctx.translate(x, y);
+      // 右手方向向弓手方向（angle + π）
+      ctx.rotate(angle + Math.PI);
+
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(20, 15);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.fillStyle = '#654321';
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawLegs(){
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 6;
+
+      ctx.beginPath();
+      ctx.moveTo(archerX - 7, archerY + 20);
+      ctx.lineTo(archerX - 25, archerY + 70);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(archerX + 7, archerY + 20);
+      ctx.lineTo(archerX + 25, archerY + 70);
+      ctx.stroke();
+    }
+
+    function drawArrow(x, y, angle, pullDist = 0){
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      const baseLength = 40;
+      const len = baseLength + pullDist;
+
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(len, 0);
+      ctx.stroke();
+
+      ctx.fillStyle = 'gray';
+      ctx.beginPath();
+      ctx.moveTo(len, 0);
+      ctx.lineTo(len - 10, 5);
+      ctx.lineTo(len - 10, -5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawEnemy(x, y){
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(x, y, enemy.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.arc(x - 7, y - 5, 5, 0, Math.PI * 2);
+      ctx.arc(x + 7, y - 5, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'black';
+      ctx.beginPath();
+      ctx.arc(x - 7, y - 5, 2, 0, Math.PI * 2);
+      ctx.arc(x + 7, y - 5, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 10, y + 10);
+      ctx.lineTo(x + 10, y + 10);
+      ctx.stroke();
+    }
+
+    function distance(x1, y1, x2, y2){
+      return Math.sqrt((x2 - x1)**2 + (y2 - y1)**2);
+    }
+
+    function startGame(){
+      score = 0;
+      timeLeft = 60;
+      gameRunning = true;
+      arrow = null;
+      spawnEnemy();
+      updateInfo();
+      startBtn.style.display = 'none';
+      restartBtn.style.display = 'none';
+
+      timerId = setInterval(() => {
+        timeLeft--;
+        updateInfo();
+        if(timeLeft <= 0){
+          endGame();
+        }
+      }, 1000);
+
+      gameLoop();
+    }
+
+    function endGame(){
+      gameRunning = false;
+      clearInterval(timerId);
+      arrow = null;
+      enemy = null;
+      updateInfo();
+      alert(`遊戲結束！你的分數是：${score}`);
+      restartBtn.style.display = 'inline-block';
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', () => {
+      restartBtn.style.display = 'none';
+      startGame();
+    });
+  </script>
+</body>
+</html>

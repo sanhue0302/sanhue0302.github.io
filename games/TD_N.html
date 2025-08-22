@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8">
+    <title>塔防遊戲（完整版）</title>
+    <style>
+    canvas {
+    background: #f0f0f0;
+    display: block;
+    margin: 10px auto;
+    border: 2px solid #222;
+    }
+    #controls {
+    text-align: center;
+    margin-bottom: 10px;
+    }
+    button {
+    margin: 0 5px;
+    padding: 8px 16px;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <button onclick="selectedTowerType='basic'">普通塔</button>
+      <button onclick="selectedTowerType='aoe'">範圍塔</button>
+      <button onclick="selectedTowerType='slow'">凍結塔</button>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const path = [
+    { x: 0, y: 300 },
+    { x: 200, y: 300 },
+    { x: 200, y: 500 },
+    { x: 600, y: 500 },
+    { x: 600, y: 100 },
+    { x: 800, y: 100 }
+    ];
+    let enemies = [];
+    let towers = [];
+    let bullets = [];
+    let money = 1000;
+    let lives = 10;
+    let wave = 1;
+    let selectedTowerType = "basic";
+    class Enemy {
+    constructor() {
+    this.x = path[0].x;
+    this.y = path[0].y;
+    this.speed = 1;
+    this.health = 100;
+    this.pathIndex = 0;
+    this.alive = true;
+    }
+    move() {
+    if (this.pathIndex >= path.length - 1) return;
+    const target = path[this.pathIndex + 1];
+    const dx = target.x - this.x;
+    const dy = target.y - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const dirX = dx / dist;
+    const dirY = dy / dist;
+    this.x += dirX * this.speed;
+    this.y += dirY * this.speed;
+    if (dist < 3) this.pathIndex++;
+    if (this.pathIndex === path.length - 1 && dist < 5) {
+    this.alive = false;
+    lives--;
+    }
+    }
+    draw() {
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "green";
+    ctx.fillRect(this.x - 15, this.y - 20, 30 * (this.health / 100), 5);
+    ctx.strokeRect(this.x - 15, this.y - 20, 30, 5);
+    }
+    }
+    class Bullet {
+    constructor(x, y, target, damage = 20) {
+    this.x = x;
+    this.y = y;
+    this.target = target;
+    this.damage = damage;
+    this.speed = 5;
+    }
+    move() {
+    const dx = this.target.x - this.x;
+    const dy = this.target.y - this.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 5 || !this.target.alive) {
+    if (this.target.alive) {
+    this.target.health -= this.damage;
+    if (this.target.health <= 0) {
+    this.target.alive = false;
+    money += 10;
+    }
+    }
+    return false;
+    }
+    this.x += dx / dist * this.speed;
+    this.y += dy / dist * this.speed;
+    return true;
+    }
+    draw() {
+    ctx.fillStyle = "gold";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    }
+    }
+    class BasicTower {
+    constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.range = 100;
+    this.damage = 20;
+    this.cooldown = 60;
+    this.timer = 0;
+    this.level = 1;
+    }
+    update() {
+    this.timer++;
+    if (this.timer >= this.cooldown) {
+    for (let e of enemies) {
+    if (e.alive && Math.hypot(e.x - this.x, e.y - this.y) < this.range) {
+    bullets.push(new Bullet(this.x, this.y, e, this.damage));
+    this.timer = 0;
+    break;
+    }
+    }
+    }
+    }
+    draw() {
+    ctx.fillStyle = "blue";
+    ctx.fillRect(this.x - 15, this.y - 15, 30, 30);
+    ctx.fillStyle = "white";
+    ctx.fillText("Lv" + this.level, this.x - 12, this.y + 5);
+    }
+    upgrade() {
+    if (this.level < 3 && money >= 40) {
+    money -= 40;
+    this.level++;
+    this.damage += 10;
+    this.range += 10;
+    this.cooldown = Math.max(20, this.cooldown - 10);
+    }
+    }
+    }
+    class AoeTower extends BasicTower {
+    constructor(x, y) {
+    super(x, y);
+    this.range = 80;
+    this.damage = 15;
+    this.cooldown = 90;
+    }
+    update() {
+    this.timer++;
+    if (this.timer >= this.cooldown) {
+    for (let e of enemies) {
+    if (e.alive && Math.hypot(e.x - this.x, e.y - this.y) < this.range) {
+    for (let other of enemies) {
+    if (other.alive && Math.hypot(other.x - e.x, other.y - e.y) < 40) {
+    other.health -= this.damage;
+    if (other.health <= 0) {
+    other.alive = false;
+    money += 10;
+    }
+    }
+    }
+    this.timer = 0;
+    break;
+    }
+    }
+    }
+    }
+    draw() {
+    ctx.fillStyle = "orange";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "black";
+    ctx.fillText("AOE", this.x - 12, this.y + 5);
+    }
+    }
+    class SlowTower extends BasicTower {
+    constructor(x, y) {
+    super(x, y);
+    this.range = 90;
+    this.cooldown = 70;
+    this.slowAmount = 0.5;
+    }
+    update() {
+    this.timer++;
+    if (this.timer >= this.cooldown) {
+    for (let e of enemies) {
+    if (e.alive && Math.hypot(e.x - this.x, e.y - this.y) < this.range) {
+    e.speed *= this.slowAmount;
+    this.timer = 0;
+    break;
+    }
+    }
+    }
+    }
+    draw() {
+    ctx.fillStyle = "cyan";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "black";
+    ctx.fillText("SLOW", this.x - 15, this.y + 5);
+    }
+    }
+    function drawPath() {
+    ctx.strokeStyle = "gray";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let point of path) {
+    ctx.lineTo(point.x, point.y);
+    }
+    ctx.stroke();
+    }
+    function drawUI() {
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText(`金幣: ${money}   ❤️: ${lives}   波次: ${wave}`, 10, 25);
+    }
+    function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPath();
+    // 出敵
+    if (enemies.filter(e => e.alive).length === 0) {
+    for (let i = 0; i < wave * 3; i++) {
+    setTimeout(() => enemies.push(new Enemy()), i * 400);
+    }
+    wave++;
+    }
+    for (let t of towers) {
+    t.update();
+    t.draw();
+    }
+    for (let e of enemies) {
+    if (e.alive) {
+    e.move();
+    e.draw();
+    }
+    }
+    bullets = bullets.filter(b => b.move());
+    for (let b of bullets) b.draw();
+    drawUI();
+    if (lives <= 0) {
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.font = "50px Arial";
+    ctx.fillText("遊戲結束", canvas.width / 2 - 100, canvas.height / 2);
+    return; // 停止遊戲迴圈
+    }
+    requestAnimationFrame(gameLoop);
+    }
+    // 建塔事件
+    canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    if (money >= 50) {
+    if (selectedTowerType === "basic") towers.push(new BasicTower(mx, my));
+    else if (selectedTowerType === "aoe") towers.push(new AoeTower(mx, my));
+    else if (selectedTowerType === "slow") towers.push(new SlowTower(mx, my));
+    money -= 50;
+    }
+    });
+    // 右鍵升級塔
+    canvas.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    for (let t of towers) {
+    if (Math.hypot(t.x - mx, t.y - my) < 20) {
+    t.upgrade();
+    break;
+    }
+    }
+    });
+    gameLoop();
+  </script> </body> </html
