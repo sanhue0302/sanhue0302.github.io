@@ -67,12 +67,15 @@ body.sidebar-open #sidebar-container {
   color: var(--accent-color);
 }
 
+/* Default button style (used by mobile close) */
 #toggle-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.5em;
   color: var(--sidebar-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #mobile-menu-btn {
@@ -177,12 +180,31 @@ body.sidebar-open #overlay {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 iframe {
+  flex-grow: 1; /* Make iframe fill available space */
   width: 100%;
-  height: 100%;
   border: none;
+}
+
+footer {
+    height: var(--footer-height);
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    flex-shrink: 0;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+footer p {
+    margin: 0 10px;
 }
 
 /* --- Desktop Styles --- */
