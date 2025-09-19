@@ -1,52 +1,20 @@
-<html>
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-  <meta data-n-head="ssr" name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
-  <style>
-    :root                  { box-sizing: border-box; }
-*, *::before, *::after { box-sizing: inherit; }
-
-:root, body {
-  margin: 0;
-  padding: 0;
-  border: initial;
-}
-
-body {
-  overflow: hidden;
-  width: 100lvw;
-  height: 100lvh;
-}
-body.noscroll {
-  min-height: 110vh;
-  height: 100%;
-  overflow: hidden; /* make sure iOS does not try to scroll the body first */
-}
-
-/* your wrapper, most likely mobile menu */
-.fixed-wrapper {
-  width: 100%;
-  position: fixed;
-  top: 0px; /* adding px unit also seems to be important for whatever reason, albeit I think we all concur that this should be unitless */
-  left: 0px;
-  bottom: 0px;
-  height: 100vh;
-  overflow: scroll; /* not auto! */
-
-  /* magic mobile viewport iOS bug fix */
-  /* also see: https://css-tricks.com/css-fix-for-100vh-in-mobile-webkit/ */
-  /* also see: https://allthingssmitty.com/2020/05/11/css-fix-for-100vh-in-mobile-webkit/ */
-  height: -webkit-fill-available;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* your actual content, which is higher than the outer element */
-.fixed-wrapper .fixed-content {
-  min-height: 100vh; /* this is the magic, actually bug abusing iOS here */
-}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Title and meta tags will be injected by main.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="noscroll fixed-wrapper">
-<div>測試page</div>
-<textarea></textarea>
-</body>  
+<body>
+  <div id="sidebar-container"></div>
+  <div id="content">
+    <iframe name="showcase"></iframe>
+  </div>
+
+  <script src="assets/js/seo-data.js"></script>
+  <script src="assets/js/menu-data.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
 </html>
