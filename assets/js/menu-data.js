@@ -11,14 +11,6 @@ const menuData = [
       {
         text: 'Arch',
         link: 'games/arch.html'
-      },
-      {
-        text: 'Dada',
-        link: 'games/dada.html'
-      },
-      {
-        text: 'TD_N',
-        link: 'games/TD_N.html'
       }
     ]
   },
