@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>弓箭手射擊遊戲（手方向修正，箭身延長）</title>
+  <title>弓箭手射擊遊戲</title>
   <style>
     body {
       text-align: center;
@@ -36,7 +36,7 @@
   </style>
 </head>
 <body>
-  <h1>弓箭手射擊遊戲（手方向修正，箭身延長）</h1>
+  <h1>弓箭手射擊遊戲</h1>
   <canvas id="gameCanvas" width="800" height="400"></canvas>
   <div id="info">時間: 60 秒｜分數: 0</div>
   <button id="startBtn">開始遊戲</button>
@@ -66,19 +66,13 @@
     let mouseX = archerX + 100;
     let mouseY = archerY;
 
-    const bowRadius = 50;
-    const maxPullDistance = 50;
-
-    let pullX = 0;
-    let pullY = 0;
+    const maxPullDistance = 70;
 
     canvas.addEventListener('mousemove', (e) => {
       if(!gameRunning) return;
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
-      mouseX = Math.min(Math.max(mouseX, archerX), archerX + 150);
-      mouseY = Math.min(Math.max(mouseY, archerY - 100), archerY + 30);
     });
 
     canvas.addEventListener('click', () => {
@@ -88,29 +82,52 @@
       }
     });
 
-    let shootX = archerX;
-    let shootY = archerY;
-
     function shootArrow(){
-      let dy = mouseY - archerY;
-      let dx = mouseX - archerX;
-      let angle = Math.atan2(dy, dx);
-      shootX = pullX;
-      shootY = pullY;
+      const shoulderX = archerX;
+      const shoulderY = archerY - 20;
+      const ARM_LENGTH = 30;
+      const bowGripX_local = ARM_LENGTH;
+      const STRING_OFFSET_X = 5;
+      const stringPlaneX_local = bowGripX_local - STRING_OFFSET_X;
+
+      const angle = Math.atan2(mouseY - shoulderY, mouseX - shoulderX);
+      
+      const handOnBowX_global = shoulderX + bowGripX_local * Math.cos(angle);
+      const handOnBowY_global = shoulderY + bowGripX_local * Math.sin(angle);
+
+      const dx = mouseX - handOnBowX_global;
+      const dy = mouseY - handOnBowY_global;
+      const dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
+      
+      const nockPointX_global = shoulderX + (stringPlaneX_local - dist) * Math.cos(angle);
+      const nockPointY_global = shoulderY + (stringPlaneX_local - dist) * Math.sin(angle);
+
       let speed = 15;
       arrow = {
-        x: shootX,
-        y: shootY,
+        x: nockPointX_global,
+        y: nockPointY_global,
         vx: speed * Math.cos(angle),
         vy: speed * Math.sin(angle),
-        angle: angle
+        angle: angle,
+        pull: dist
       };
     }
 
     function spawnEnemy() {
-      let enemyX = Math.random() * (WIDTH - 400) + 500;
-      let enemyY = Math.random() * (HEIGHT - 150) + 50;
-      enemy = {x: enemyX, y: enemyY, radius: 20};
+      const enemyRadius = 20;
+      const minDistanceFromArcher = 300;
+
+      const minX = archerX + minDistanceFromArcher;
+      const maxX = WIDTH - enemyRadius;
+      const spawnableWidth = maxX - minX;
+      const enemyX = Math.random() * spawnableWidth + minX;
+
+      const minY = 50;
+      const maxY = HEIGHT - 100;
+      const spawnableHeight = maxY - minY;
+      const enemyY = Math.random() * spawnableHeight + minY;
+
+      enemy = {x: enemyX, y: enemyY, radius: enemyRadius};
     }
 
     function updateInfo(){
@@ -132,8 +149,7 @@
         arrow.y += arrow.vy;
         arrow.angle = Math.atan2(arrow.vy, arrow.vx);
 
-        // 射出箭身長度用最大拉弦距離保持箭身長度一致
-        drawArrow(arrow.x, arrow.y, arrow.angle, maxPullDistance);
+        drawArrow(arrow.x, arrow.y, arrow.angle, arrow.pull);
 
         if(enemy && distance(arrow.x, arrow.y, enemy.x, enemy.y) < enemy.radius){
           score++;
@@ -142,134 +158,199 @@
           updateInfo();
         }
 
-        if(arrow.x > WIDTH || arrow.y > HEIGHT || arrow.y < 0){
+        if(arrow && (arrow.x < 0 || arrow.x > WIDTH || arrow.y > HEIGHT)){
           arrow = null;
         }
-      } else {
-        let dx = mouseX - archerX;
-        let dy = mouseY - archerY;
-        let angle = Math.atan2(dy, dx);
-        let dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
-        drawArrow(shootX, shootY, angle, dist);
+      } 
+
+      if(gameRunning && !arrow){
+        drawAimingAssist();
       }
 
       if(gameRunning){
         requestAnimationFrame(gameLoop);
       }
     }
+    
+    function drawAimingAssist(){
+        const shoulderX = archerX;
+        const shoulderY = archerY - 20;
+        const ARM_LENGTH = 30;
+        const bowGripX_local = ARM_LENGTH;
+        const STRING_OFFSET_X = 5;
+        const stringPlaneX_local = bowGripX_local - STRING_OFFSET_X;
 
-    function drawArcher(){
-      let dy = mouseY - archerY;
-      let dx = mouseX - archerX;
-      let angle = Math.atan2(dy, dx);
-      let dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
+        const angle = Math.atan2(mouseY - shoulderY, mouseX - shoulderX);
 
-      pullX = archerX + Math.cos(angle) * bowRadius - Math.cos(angle) * dist;
-      pullY = archerY + Math.sin(angle) * bowRadius - Math.sin(angle) * dist;
+        const handOnBowX_global = shoulderX + bowGripX_local * Math.cos(angle);
+        const handOnBowY_global = shoulderY + bowGripX_local * Math.sin(angle);
 
-      ctx.save();
-      drawBody();
+        const dx = mouseX - handOnBowX_global;
+        const dy = mouseY - handOnBowY_global;
+        const dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
 
-      ctx.translate(archerX, archerY);
-      ctx.rotate(angle);
+        const nockPointX_global = shoulderX + (stringPlaneX_local - dist) * Math.cos(angle);
+        const nockPointY_global = shoulderY + (stringPlaneX_local - dist) * Math.sin(angle);
 
-      ctx.strokeStyle = 'brown';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(0, 0, bowRadius, Math.PI * 3 / 2, Math.PI / 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, -bowRadius);
-      ctx.lineTo(-dist, 0);
-      ctx.lineTo(0, bowRadius);
-      ctx.stroke();
-
-      // 左手握弓固定畫出
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = '#654321';
-      ctx.beginPath();
-      ctx.moveTo(0, 10);
-      ctx.lineTo(-10, 40);
-      ctx.stroke();
-
-      ctx.restore();
-
-      drawRightHand(pullX, pullY, angle);
-      drawLegs();
+        drawArrow(nockPointX_global, nockPointY_global, angle, dist);
     }
 
-    function drawBody(){
-      ctx.fillStyle = '#654321';
-      ctx.beginPath();
-      ctx.arc(archerX, archerY - 40, 15, 0, Math.PI * 2);
-      ctx.fill();
+    function drawArcher() {
+        const archerColor = '#333333';
+        const bowColor = '#8B4513';
+        const shoulderX = archerX;
+        const shoulderY = archerY - 20;
+        const ARM_LENGTH = 30;
 
-      ctx.fillRect(archerX - 10, archerY - 40, 20, 60);
+        // --- Static Body ---
+        ctx.save();
+        ctx.strokeStyle = archerColor;
+        ctx.fillStyle = archerColor;
+        ctx.lineWidth = 10;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Torso
+        ctx.beginPath();
+        ctx.moveTo(archerX, archerY - 25);
+        ctx.lineTo(archerX, archerY + 15);
+        ctx.stroke();
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(archerX, archerY - 40, 15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Legs
+        ctx.beginPath();
+        ctx.moveTo(archerX, archerY + 15);
+        ctx.lineTo(archerX - 15, archerY + 60);
+        ctx.moveTo(archerX, archerY + 15);
+        ctx.lineTo(archerX + 15, archerY + 60);
+        ctx.stroke();
+        ctx.restore();
+
+        // --- Calculations ---
+        const angle = Math.atan2(mouseY - shoulderY, mouseX - shoulderX);
+        const bowGripGlobalX = shoulderX + ARM_LENGTH * Math.cos(angle);
+        const bowGripGlobalY = shoulderY + ARM_LENGTH * Math.sin(angle);
+        const dx = mouseX - bowGripGlobalX;
+        const dy = mouseY - bowGripGlobalY;
+        const dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
+        const pullX = bowGripGlobalX - dist * Math.cos(angle);
+        const pullY = bowGripGlobalY - dist * Math.sin(angle);
+
+        // --- Right Arm ---
+        ctx.save();
+        ctx.strokeStyle = archerColor;
+        ctx.lineWidth = 10;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(archerX + 5, shoulderY); // Right shoulder
+        ctx.lineTo(pullX, pullY);
+        ctx.stroke();
+        ctx.restore();
+
+        // --- Rotated Left Arm/Bow Assembly ---
+        ctx.save();
+        ctx.translate(shoulderX, shoulderY);
+        ctx.rotate(angle);
+
+        const bowGripX = ARM_LENGTH;
+        const handY = 0;
+        const bowTipY = 60;
+        const handX = bowGripX + 20;
+
+        // Arm connects shoulder to the new hand position
+        ctx.strokeStyle = archerColor;
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(handX, 0);
+        ctx.stroke();
+
+        const STRING_OFFSET_X = 5;
+        const stringPlaneX = bowGripX - STRING_OFFSET_X;
+
+        // Draw Bowstring (Pulled)
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(stringPlaneX, -bowTipY);
+        ctx.lineTo(stringPlaneX - dist, 0);
+        ctx.lineTo(stringPlaneX, bowTipY);
+        ctx.stroke();
+
+        // Draw Bow
+        const bowCurve = 40;
+        ctx.strokeStyle = bowColor;
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(bowGripX, -bowTipY);
+        ctx.quadraticCurveTo(bowGripX + bowCurve, 0, bowGripX, bowTipY);
+        ctx.stroke();
+
+        // Draw Hand
+        ctx.fillStyle = archerColor;
+        ctx.beginPath();
+        ctx.arc(handX, handY, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
     }
 
-    function drawRightHand(x, y, angle){
-      ctx.save();
-      ctx.translate(x, y);
-      // 右手方向向弓手方向（angle + π）
-      ctx.rotate(angle + Math.PI);
+    function drawArrow(x, y, angle, pullDist = 0) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
 
-      ctx.strokeStyle = '#654321';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(20, 15);
-      ctx.stroke();
+        // Fixed length, longer than max pull distance (70)
+        const ARROW_LENGTH = 120;
 
-      ctx.beginPath();
-      ctx.fillStyle = '#654321';
-      ctx.arc(0, 0, 6, 0, Math.PI * 2);
-      ctx.fill();
+        // Arrow Shaft
+        ctx.strokeStyle = '#8B4513';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(ARROW_LENGTH, 0);
+        ctx.stroke();
 
-      ctx.restore();
-    }
+        // Fletching
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2; // Thinner
 
-    function drawLegs(){
-      ctx.strokeStyle = '#654321';
-      ctx.lineWidth = 6;
+        // Feather 1
+        ctx.beginPath();
+        ctx.moveTo(25, -3);
+        ctx.lineTo(20, 0);
+        ctx.lineTo(25, 3);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(archerX - 7, archerY + 20);
-      ctx.lineTo(archerX - 25, archerY + 70);
-      ctx.stroke();
+        // Feather 2
+        ctx.beginPath();
+        ctx.moveTo(18, -3);
+        ctx.lineTo(13, 0);
+        ctx.lineTo(18, 3);
+        ctx.stroke();
+        
+        // Feather 3
+        ctx.beginPath();
+        ctx.moveTo(11, -3);
+        ctx.lineTo(6, 0);
+        ctx.lineTo(11, 3);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(archerX + 7, archerY + 20);
-      ctx.lineTo(archerX + 25, archerY + 70);
-      ctx.stroke();
-    }
+        // Arrowhead
+        ctx.fillStyle = '#333333';
+        ctx.beginPath();
+        ctx.moveTo(ARROW_LENGTH + 5, 0);
+        ctx.lineTo(ARROW_LENGTH - 10, 7);
+        ctx.lineTo(ARROW_LENGTH - 10, -7);
+        ctx.closePath();
+        ctx.fill();
 
-    function drawArrow(x, y, angle, pullDist = 0){
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-
-      const baseLength = 40;
-      const len = baseLength + pullDist;
-
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(len, 0);
-      ctx.stroke();
-
-      ctx.fillStyle = 'gray';
-      ctx.beginPath();
-      ctx.moveTo(len, 0);
-      ctx.lineTo(len - 10, 5);
-      ctx.lineTo(len - 10, -5);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.restore();
+        ctx.restore();
     }
 
     function drawEnemy(x, y){
