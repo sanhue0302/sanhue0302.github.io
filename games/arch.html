@@ -67,12 +67,13 @@
     let mouseY = archerY;
 
     const maxPullDistance = 70;
+    const ARROW_LENGTH = 120;
 
     canvas.addEventListener('mousemove', (e) => {
       if(!gameRunning) return;
       const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
+      mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
     });
 
     canvas.addEventListener('click', () => {
@@ -102,7 +103,7 @@
       const nockPointX_global = shoulderX + (stringPlaneX_local - dist) * Math.cos(angle);
       const nockPointY_global = shoulderY + (stringPlaneX_local - dist) * Math.sin(angle);
 
-      let speed = 15;
+      const speed = 8 + (dist / maxPullDistance) * 12;
       arrow = {
         x: nockPointX_global,
         y: nockPointY_global,
@@ -151,7 +152,10 @@
 
         drawArrow(arrow.x, arrow.y, arrow.angle, arrow.pull);
 
-        if(enemy && distance(arrow.x, arrow.y, enemy.x, enemy.y) < enemy.radius){
+        const arrowTipX = arrow.x + ARROW_LENGTH * Math.cos(arrow.angle);
+        const arrowTipY = arrow.y + ARROW_LENGTH * Math.sin(arrow.angle);
+
+        if(enemy && distance(arrowTipX, arrowTipY, enemy.x, enemy.y) < enemy.radius){
           score++;
           arrow = null;
           spawnEnemy();
@@ -193,6 +197,35 @@
         const nockPointY_global = shoulderY + (stringPlaneX_local - dist) * Math.sin(angle);
 
         drawArrow(nockPointX_global, nockPointY_global, angle, dist);
+
+        // Draw trajectory path
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+
+        let simX = nockPointX_global;
+        let simY = nockPointY_global;
+        const speed = 8 + (dist / maxPullDistance) * 12;
+        let simVx = speed * Math.cos(angle);
+        let simVy = speed * Math.sin(angle);
+
+        ctx.moveTo(simX, simY);
+
+        for (let i = 0; i < 40; i++) {
+          simVy += gravity * 0.1;
+          simX += simVx;
+          simY += simVy;
+
+          ctx.lineTo(simX, simY);
+
+          if (simX < 0 || simX > WIDTH || simY > HEIGHT) {
+            break;
+          }
+        }
+        ctx.stroke();
+        ctx.restore();
     }
 
     function drawArcher() {
@@ -236,7 +269,7 @@
         const bowGripGlobalY = shoulderY + ARM_LENGTH * Math.sin(angle);
         const dx = mouseX - bowGripGlobalX;
         const dy = mouseY - bowGripGlobalY;
-        const dist = Math.min(maxPullDistance, Math.hypot(dx, dy));
+        const dist = (arrow === null) ? Math.min(maxPullDistance, Math.hypot(dx, dy)) : 0;
         const pullX = bowGripGlobalX - dist * Math.cos(angle);
         const pullY = bowGripGlobalY - dist * Math.sin(angle);
 
@@ -305,7 +338,6 @@
         ctx.rotate(angle);
 
         // Fixed length, longer than max pull distance (70)
-        const ARROW_LENGTH = 120;
 
         // Arrow Shaft
         ctx.strokeStyle = '#8B4513';

@@ -6,7 +6,7 @@ const seoData = {
         description: "逛逛我的 Side Project、看看我的技術實踐，或來玩玩看跟 AI 一起做的小遊戲！",
         type: "website",
         // Remember to change this to your actual GitHub Pages URL
-        url: "https://sanhue0302.github.io/sanhue0302/", 
+        url: "https://sanhue0302.github.io/", 
         // You can add an image URL here to be used as a preview
         image: ""
     }
