@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird Sort 小鳥分類遊戲</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1 class="level-title">第 <span id="level">1</span> 關</h1>
+            <div class="header-right">
+                <div id="timer" class="timer-text">00:00</div>
+                <button id="reset-btn" class="bird-style-btn" title="重新開始">
+                    <span class="icon-spin">🔄</span>
+                </button>
+            </div>
+        </header>
+        
+        <main id="game-board">
+            <div class="tree left-tree">
+                <div class="branches-container" id="left-branches"></div>
+            </div>
+            <div class="tree right-tree">
+                <div class="branches-container" id="right-branches"></div>
+            </div>
+        </main>
+
+        <div class="items-container">
+            <button class="item-btn add-branch-btn" id="btn-add-branch">
+                <span class="icon">🌿</span>
+                <span class="item-name">加樹枝</span>
+                <span class="badge" id="badge-add-branch">1</span>
+            </button>
+            <button class="item-btn undo-btn" id="btn-undo">
+                <span class="icon">↩️</span>
+                <span class="item-name">上一步</span>
+                <span class="badge" id="badge-undo">1</span>
+            </button>
+            <button class="item-btn hint-btn" id="btn-hint">
+                <span class="icon">💡</span>
+                <span class="item-name">提示</span>
+                <span class="badge" id="badge-hint">1</span>
+            </button>
+        </div>
+        
+        <div id="victory-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>過關了！</h2>
+                <p>太棒了！所有的小鳥都分類好了。</p>
+                <p id="victory-time" style="margin-top:-15px; margin-bottom:20px; font-weight:bold;"></p>
+                <button id="next-level-btn">下一關</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
