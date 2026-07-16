@@ -108,25 +108,27 @@ header {
     position: relative;
 }
 
-.bird-style-btn::before {
+.bird-style-btn::before,
+.bird::before {
     content: '';
     position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 7px;
-    height: 7px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 22px 0 0 white;
+    top: 25%;
+    left: 15%;
+    width: 70%;
+    height: 20%;
+    background: 
+        radial-gradient(circle, white 40%, transparent 45%) no-repeat 15% 50% / 25% 100%,
+        radial-gradient(circle, white 40%, transparent 45%) no-repeat 85% 50% / 25% 100%;
 }
 
-.bird-style-btn::after {
+.bird-style-btn::after,
+.bird::after {
     content: '';
     position: absolute;
-    top: 18px;
-    left: 21px;
-    width: 8px;
-    height: 8px;
+    top: 50%;
+    left: 41%;
+    width: 18%;
+    height: 20%;
     background: #ffcc00;
     border-radius: 50%;
 }
@@ -269,28 +271,6 @@ header {
     z-index: 2;
 }
 
-.bird::before {
-    content: '';
-    position: absolute;
-    top: 15px;
-    left: 10px;
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-    box-shadow: 32px 0 0 white;
-}
-
-.bird::after {
-    content: '';
-    position: absolute;
-    top: 25px;
-    left: 25px;
-    width: 10px;
-    height: 10px;
-    background: #ffcc00;
-    border-radius: 50%;
-}
 
 .bird.color-0 { background: #ff5757; } /* 紅色 */
 .bird.color-1 { background: #5ce1e6; } /* 青藍 */
@@ -483,12 +463,6 @@ header {
         height: 36px;
         font-size: 1rem;
     }
-    .bird-style-btn::before {
-        top: 8px; left: 8px; width: 5px; height: 5px; box-shadow: 18px 0 0 white;
-    }
-    .bird-style-btn::after {
-        top: 14px; left: 16px; width: 6px; height: 6px;
-    }
     .items-container {
         padding: 5px 10px;
         gap: 10px;
@@ -514,19 +488,6 @@ header {
         width: 35px;
         height: 35px;
         margin-bottom: 2px;
-    }
-    .bird::before {
-        top: 8px;
-        left: 6px;
-        width: 5px;
-        height: 5px;
-        box-shadow: 18px 0 0 white;
-    }
-    .bird::after {
-        top: 14px;
-        left: 14px;
-        width: 6px;
-        height: 6px;
     }
 }
 
