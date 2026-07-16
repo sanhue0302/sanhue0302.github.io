@@ -208,12 +208,14 @@ function solveGame(startState) {
 }
 
 const levelsConfig = [
-    { numBranches: 4, numColors: 3, birdsPerBranch: 4 },
-    { numBranches: 5, numColors: 4, birdsPerBranch: 4 },
-    { numBranches: 6, numColors: 5, birdsPerBranch: 5 },
-    { numBranches: 7, numColors: 6, birdsPerBranch: 5 },
-    { numBranches: 7, numColors: 6, birdsPerBranch: 6 },
-    { numBranches: 8, numColors: 7, birdsPerBranch: 6 }
+    // levelsCount 代表這個難度要維持幾關
+    { numBranches: 5, numColors: 3, birdsPerBranch: 4, levelsCount: 5 },   // 前 5 關
+    { numBranches: 6, numColors: 4, birdsPerBranch: 4, levelsCount: 15 },  // 第 6~20 關
+    { numBranches: 7, numColors: 5, birdsPerBranch: 4, levelsCount: 30 },  // 第 21~50 關
+    { numBranches: 8, numColors: 6, birdsPerBranch: 4, levelsCount: 50 },  // 第 51~100 關
+    { numBranches: 8, numColors: 6, birdsPerBranch: 5, levelsCount: 100 },  // 第 101~200 關
+    { numBranches: 9, numColors: 7, birdsPerBranch: 5, levelsCount: 100 },  // 第 201~300 關
+    { numBranches: 10, numColors: 8, birdsPerBranch: 6 }                   // 第 301 關起無限玩下去 (不設定 levelsCount)
 ];
 
 function initGame() {
@@ -224,7 +226,23 @@ function initGame() {
     moveHistory = [];
     itemUsedThisLevel = { addBranch: false, undo: false, hint: false };
 
-    const configIndex = Math.min(currentLevel - 1, levelsConfig.length - 1);
+    // 根據目前的關卡，計算對應的難度設定 (動態區間)
+    let configIndex = 0;
+    let accumulatedLevels = 0;
+    for (let i = 0; i < levelsConfig.length; i++) {
+        const conf = levelsConfig[i];
+        if (conf.levelsCount) {
+            accumulatedLevels += conf.levelsCount;
+            if (currentLevel <= accumulatedLevels) {
+                configIndex = i;
+                break;
+            }
+        } else {
+            // 沒有 levelsCount 代表是最高難度，無限延伸
+            configIndex = i;
+            break;
+        }
+    }
     const config = levelsConfig[configIndex];
     
     BIRDS_PER_BRANCH = config.birdsPerBranch;
