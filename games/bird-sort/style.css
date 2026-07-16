@@ -149,6 +149,15 @@ header {
     transform: translateY(1px) scale(0.95);
 }
 
+.bird-style-btn:hover .icon-spin {
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 #game-board {
     flex: 1;
     display: flex;
@@ -350,6 +359,10 @@ header {
 .modal-content button:hover {
     background: #6bc24a;
     transform: scale(1.05);
+}
+
+.modal-content button:hover .material-symbols-rounded {
+    animation: spin 1.5s linear infinite;
 }
 
 .modal-content button:active {

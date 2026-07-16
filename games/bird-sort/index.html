@@ -6,6 +6,7 @@
     <title>Bird Sort 小鳥分類遊戲</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,700,0,0" rel="stylesheet">
 </head>
 <body>
     <div class="game-container">
@@ -14,7 +15,7 @@
             <div class="header-right">
                 <div id="timer" class="timer-text">00:00</div>
                 <button id="reset-btn" class="bird-style-btn" title="重新開始">
-                    <span class="icon-spin">🔄</span>
+                    <span class="material-symbols-rounded icon-spin" style="font-size: 24px; color: white;">refresh</span>
                 </button>
             </div>
         </header>
@@ -59,7 +60,9 @@
             <div class="modal-content">
                 <h2 style="color: #ff5757;">無路可走！😭</h2>
                 <p>當前小鳥的排列已經無解囉。</p>
-                <button id="restart-level-btn">重新挑戰 🔄</button>
+                <button id="restart-level-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto;">
+                    重新挑戰 <span class="material-symbols-rounded">refresh</span>
+                </button>
             </div>
         </div>
     </div>
