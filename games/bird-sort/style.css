@@ -91,24 +91,22 @@ header {
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
 }
 
-.bird-style-btn {
-    width: 50px;
+.icon-btn {
+    width: 45px;
     height: 45px;
-    border-radius: 50% 50% 40% 40%;
-    background: #5ce1e6;
-    box-shadow: inset -4px -4px 8px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.3);
-    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     color: white;
-    font-size: 1.4rem;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: transform 0.2s, filter 0.2s;
-    position: relative;
+    transition: transform 0.2s, background 0.2s;
+    backdrop-filter: blur(5px);
 }
 
-.bird-style-btn::before,
 .bird::before {
     content: '';
     position: absolute;
@@ -121,7 +119,6 @@ header {
         radial-gradient(circle, white 40%, transparent 45%) no-repeat 85% 50% / 25% 100%;
 }
 
-.bird-style-btn::after,
 .bird::after {
     content: '';
     position: absolute;
@@ -133,23 +130,24 @@ header {
     border-radius: 50%;
 }
 
-.bird-style-btn .icon-spin {
+.icon-btn .icon-spin {
     position: relative;
     z-index: 2;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-    margin-top: 5px; /* push down slightly to match belly */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    display: flex;
 }
 
-.bird-style-btn:hover {
+.icon-btn:hover {
     transform: translateY(-2px) scale(1.05);
-    filter: brightness(1.1);
+    background: rgba(255, 255, 255, 0.35);
 }
 
-.bird-style-btn:active {
+.icon-btn:active {
     transform: translateY(1px) scale(0.95);
+    background: rgba(255, 255, 255, 0.15);
 }
 
-.bird-style-btn:hover .icon-spin {
+.icon-btn:hover .icon-spin {
     animation: spin 1.5s linear infinite;
 }
 
@@ -499,10 +497,9 @@ header {
         font-size: 0.9rem;
         padding: 4px 6px;
     }
-    .bird-style-btn {
-        width: 40px;
+    .icon-btn {
+        width: 36px;
         height: 36px;
-        font-size: 1rem;
     }
     .items-container {
         padding: 5px 10px;
