@@ -3,6 +3,8 @@ const resetBtn = document.getElementById('reset-btn');
 const levelSpan = document.getElementById('level');
 const victoryModal = document.getElementById('victory-modal');
 const nextLevelBtn = document.getElementById('next-level-btn');
+const noSolutionModal = document.getElementById('no-solution-modal');
+const restartLevelBtn = document.getElementById('restart-level-btn');
 
 const INFINITE_ITEMS = true; // 暫時改為無限次數
 
@@ -215,6 +217,7 @@ const levelsConfig = [
 
 function initGame() {
     victoryModal.classList.add('hidden');
+    noSolutionModal.classList.add('hidden');
     selectedBranchIndex = null;
     completedBranchIndices.clear();
     moveHistory = [];
@@ -664,10 +667,12 @@ btnHint.addEventListener('click', () => {
                 });
             }, 800);
         } else {
-            alert("當前棋盤狀態已無解！建議點擊「上一步」返回或按右上方「重新開始」🔄");
+            noSolutionModal.classList.remove('hidden');
         }
     }
 });
+
+restartLevelBtn.addEventListener('click', initGame);
 
 // Start game
 loadData();

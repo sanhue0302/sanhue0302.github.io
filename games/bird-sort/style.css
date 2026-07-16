@@ -336,12 +336,24 @@ header {
 
 .modal-content button {
     background: #7ed957;
+    color: white;
     font-size: 1.5rem;
     padding: 15px 40px;
+    border: none;
+    border-radius: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.2s, background 0.2s;
 }
 
 .modal-content button:hover {
     background: #6bc24a;
+    transform: scale(1.05);
+}
+
+.modal-content button:active {
+    transform: scale(0.98);
 }
 
 @keyframes popIn {
