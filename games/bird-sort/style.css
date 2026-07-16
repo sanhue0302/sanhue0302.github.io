@@ -298,6 +298,18 @@ header {
 .bird.color-3 { background: #cb6ce6; }
 .bird.color-4 { background: #ffde59; }
 
+.bird.empty-slot {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.35);
+    box-shadow: none;
+    pointer-events: none;
+}
+
+.bird.empty-slot::before,
+.bird.empty-slot::after {
+    display: none !important;
+}
+
 .modal {
     position: fixed;
     top: 0;

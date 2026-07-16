@@ -4,6 +4,8 @@ const levelSpan = document.getElementById('level');
 const victoryModal = document.getElementById('victory-modal');
 const nextLevelBtn = document.getElementById('next-level-btn');
 
+const INFINITE_ITEMS = true; // 暫時改為無限次數
+
 let currentLevel = 1;
 let branches = [];
 let selectedBranchIndex = null;
@@ -72,16 +74,134 @@ const badgeUndo = document.getElementById('badge-undo');
 const badgeHint = document.getElementById('badge-hint');
 
 function renderItems() {
-    badgeAddBranch.textContent = inventory.addBranch;
-    btnAddBranch.disabled = inventory.addBranch === 0;
+    const isBranchLimitReached = branches.length >= 10;
 
-    badgeUndo.textContent = inventory.undo;
-    btnUndo.disabled = inventory.undo === 0 || moveHistory.length === 0;
+    if (INFINITE_ITEMS) {
+        badgeAddBranch.textContent = '∞';
+        btnAddBranch.disabled = isBranchLimitReached;
 
-    badgeHint.textContent = inventory.hint;
-    btnHint.disabled = inventory.hint === 0;
+        badgeUndo.textContent = '∞';
+        btnUndo.disabled = moveHistory.length === 0;
+
+        badgeHint.textContent = '∞';
+        btnHint.disabled = false;
+    } else {
+        badgeAddBranch.textContent = inventory.addBranch;
+        btnAddBranch.disabled = inventory.addBranch === 0 || isBranchLimitReached;
+
+        badgeUndo.textContent = inventory.undo;
+        btnUndo.disabled = inventory.undo === 0 || moveHistory.length === 0;
+
+        badgeHint.textContent = inventory.hint;
+        btnHint.disabled = inventory.hint === 0;
+    }
     
     saveData();
+}
+
+// --- 關卡求解器 (Backtracking Solver) ---
+function isSolved(state) {
+    for (let branch of state) {
+        if (branch.length > 0) {
+            if (branch.length !== BIRDS_PER_BRANCH) return false;
+            const first = branch[0];
+            if (!branch.every(c => c === first)) return false;
+        }
+    }
+    return true;
+}
+
+function getValidMoves(state) {
+    let moves = [];
+    for (let i = 0; i < state.length; i++) {
+        const src = state[i];
+        if (src.length === 0) continue;
+        
+        // 已完成的樹枝不需要再移出
+        if (src.length === BIRDS_PER_BRANCH && src.every(c => c === src[0])) continue;
+        
+        const topColor = src[src.length - 1];
+        
+        // 計算最上面有幾隻相同顏色的鳥
+        let sameColorCount = 0;
+        for (let k = src.length - 1; k >= 0; k--) {
+            if (src[k] === topColor) sameColorCount++;
+            else break;
+        }
+        
+        const isOnlyOneColor = src.every(c => c === topColor);
+
+        for (let j = 0; j < state.length; j++) {
+            if (i === j) continue;
+            const dst = state[j];
+            if (dst.length === BIRDS_PER_BRANCH) continue;
+            
+            if (dst.length === 0) {
+                // 剪枝優化：如果整根樹枝只有同一種顏色的鳥，移到空樹枝並不會改變實質狀態，應予過濾
+                if (!isOnlyOneColor) {
+                    moves.push({ src: i, dst: j, count: sameColorCount });
+                }
+            } else {
+                if (dst[dst.length - 1] === topColor) {
+                    const availableSpace = BIRDS_PER_BRANCH - dst.length;
+                    const count = Math.min(sameColorCount, availableSpace);
+                    if (count > 0) {
+                        moves.push({ src: i, dst: j, count: count });
+                    }
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+function applyMove(state, src, dst, count) {
+    const nextState = state.map(b => [...b]);
+    for (let i = 0; i < count; i++) {
+        const bird = nextState[src].pop();
+        nextState[dst].push(bird);
+    }
+    return nextState;
+}
+
+function solveGame(startState) {
+    let visited = new Set();
+    let solutionPath = null;
+    
+    function dfs(state, path) {
+        if (isSolved(state)) {
+            solutionPath = path;
+            return true;
+        }
+        
+        // 樹枝排序歸一化，降低對稱狀態的搜尋空間
+        const stateKey = state.map(b => b.join(',')).sort().join('|');
+        if (visited.has(stateKey)) return false;
+        visited.add(stateKey);
+        
+        // 限制搜尋節點數避免無窮深搜或過長卡頓
+        if (visited.size > 3000) return false;
+        
+        const moves = getValidMoves(state);
+        
+        // 優先搜尋不移至空樹枝的步數，以加速找到解答
+        moves.sort((a, b) => {
+            const aToEmpty = state[a.dst].length === 0 ? 1 : 0;
+            const bToEmpty = state[b.dst].length === 0 ? 1 : 0;
+            return aToEmpty - bToEmpty;
+        });
+
+        for (let move of moves) {
+            const nextState = applyMove(state, move.src, move.dst, move.count);
+            if (dfs(nextState, [...path, move])) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    dfs(startState, []);
+    return solutionPath;
 }
 
 const levelsConfig = [
@@ -145,6 +265,14 @@ function initGame() {
                 break;
             }
         }
+        
+        // 確保隨機生成的棋盤佈局是有解的
+        if (isValidLayout) {
+            const path = solveGame(branches);
+            if (!path) {
+                isValidLayout = false;
+            }
+        }
     }
     renderBoard();
     renderItems();
@@ -192,6 +320,14 @@ function renderBoard() {
             branchDiv.appendChild(birdDiv);
         });
 
+        // 渲染空位，確保每根樹枝的鳥/空位總數固定，避免鳥的大小隨數量變化而改變
+        const emptySlotsCount = BIRDS_PER_BRANCH - branch.length;
+        for (let i = 0; i < emptySlotsCount; i++) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'bird empty-slot';
+            branchDiv.appendChild(emptyDiv);
+        }
+
         branchDiv.addEventListener('click', () => handleBranchClick(index));
         
         if (index % 2 === 0) {
@@ -199,6 +335,120 @@ function renderBoard() {
         } else {
             rightBranchesContainer.appendChild(branchDiv);
         }
+    });
+}
+
+function performMoveWithAnimation(srcIndex, dstIndex, moveCount, callback) {
+    const srcDiv = document.querySelector(`.branch[data-index="${srcIndex}"]`);
+    const dstDiv = document.querySelector(`.branch[data-index="${dstIndex}"]`);
+    if (!srcDiv || !dstDiv) {
+        if (callback) callback();
+        return;
+    }
+
+    // 1. 取得即將移動的小鳥 DOM 元素與它們初始的螢幕位置
+    const sourceBranch = branches[srcIndex];
+    const startIndex = sourceBranch.length - moveCount;
+    const movingBirdElements = [];
+    for (let i = 0; i < moveCount; i++) {
+        const el = srcDiv.children[startIndex + i];
+        if (el) {
+            movingBirdElements.push({
+                el: el,
+                rect: el.getBoundingClientRect()
+            });
+        }
+    }
+
+    // 2. 進行數據狀態的更新與歷史備份
+    moveHistory.push(JSON.parse(JSON.stringify(branches)));
+    renderItems(); // 更新上一步按鈕狀態
+    
+    const targetBranch = branches[dstIndex];
+    for (let i = 0; i < moveCount; i++) {
+        const birdToMove = sourceBranch.pop();
+        targetBranch.push(birdToMove);
+    }
+    
+    // 清除選擇狀態
+    selectedBranchIndex = null;
+
+    // 3. 重新渲染更新後的棋盤
+    renderBoard();
+
+    // 4. 計算並執行 FLIP (First, Last, Invert, Play) 平移動畫
+    const newStartIndex = targetBranch.length - moveCount;
+    const animPromises = [];
+
+    for (let i = 0; i < moveCount; i++) {
+        const newEl = dstDiv.children[newStartIndex + i];
+        const oldInfo = movingBirdElements[i];
+        if (newEl && oldInfo) {
+            const newRect = newEl.getBoundingClientRect();
+            
+            const dx = oldInfo.rect.left - newRect.left;
+            const dy = oldInfo.rect.top - newRect.top;
+
+            if (dx === 0 && dy === 0) {
+                // 若位置無變動則無需動畫
+                newEl.style.transition = '';
+                newEl.style.transform = '';
+                newEl.style.zIndex = '';
+                animPromises.push(Promise.resolve());
+            } else {
+                // 立即平移回初始位置（無過渡效果）
+                newEl.style.transition = 'none';
+                newEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                newEl.style.zIndex = '1000'; // 確保浮於上方
+
+                newEl.getBoundingClientRect(); // 強制重繪
+
+                // 開啟過渡並平移回最終位置
+                newEl.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+                newEl.style.transform = 'translate(0, 0)';
+
+                const p = new Promise(resolve => {
+                    let resolved = false;
+                    const timer = setTimeout(() => {
+                        if (!resolved) {
+                            resolved = true;
+                            newEl.removeEventListener('transitionend', handler);
+                            newEl.style.transition = '';
+                            newEl.style.transform = '';
+                            newEl.style.zIndex = '';
+                            resolve();
+                        }
+                    }, 550); // 550ms 安全退場機制 (動畫為 0.45s)
+
+                    function handler() {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timer);
+                            newEl.removeEventListener('transitionend', handler);
+                            newEl.style.transition = '';
+                            newEl.style.transform = '';
+                            newEl.style.zIndex = '';
+                            resolve();
+                        }
+                    }
+                    newEl.addEventListener('transitionend', handler);
+                });
+                animPromises.push(p);
+            }
+        }
+    }
+
+    // 5. 動畫結束後，處理樹枝完成動畫與回調
+    Promise.all(animPromises).then(() => {
+        const isCompleted = targetBranch.length === BIRDS_PER_BRANCH && targetBranch.every(c => c === targetBranch[0]);
+        if (isCompleted) {
+            const targetBranchDOM = document.querySelector(`.branch[data-index="${dstIndex}"]`);
+            if (targetBranchDOM) {
+                targetBranchDOM.classList.add('just-completed');
+            }
+            completedBranchIndices.add(dstIndex);
+        }
+        if (callback) callback();
     });
 }
 
@@ -245,31 +495,9 @@ function handleBranchClick(index) {
 
         // Check if move is valid
         if (moveCount > 0 && (targetBranch.length === 0 || targetBranch[targetBranch.length - 1] === topBird)) {
-            
-            // Deep copy branches for history
-            moveHistory.push(JSON.parse(JSON.stringify(branches)));
-            renderItems(); // enable undo button
-            
-            // Move birds
-            for (let i = 0; i < moveCount; i++) {
-                const birdToMove = sourceBranch.pop();
-                targetBranch.push(birdToMove);
-            }
-            selectedBranchIndex = null;
-            
-            const isCompleted = targetBranch.length === BIRDS_PER_BRANCH && targetBranch.every(c => c === targetBranch[0]);
-            
-            renderBoard();
-            
-            if (isCompleted) {
-                const targetBranchDOM = document.querySelector(`.branch[data-index="${index}"]`);
-                if (targetBranchDOM) {
-                    targetBranchDOM.classList.add('just-completed');
-                }
-                completedBranchIndices.add(index);
-            }
-            
-            checkVictory();
+            performMoveWithAnimation(selectedBranchIndex, index, moveCount, () => {
+                checkVictory();
+            });
         } else {
             // Invalid move, change selection or deselect
             if (branches[index].length > 0) {
@@ -336,8 +564,14 @@ nextLevelBtn.addEventListener('click', () => {
 // Item actions
 btnAddBranch.addEventListener('click', () => {
     checkStartTimer();
-    if (inventory.addBranch > 0) {
-        inventory.addBranch--;
+    if (branches.length >= 10) {
+        alert("最多只能有 10 枝樹枝！");
+        return;
+    }
+    if (INFINITE_ITEMS || inventory.addBranch > 0) {
+        if (!INFINITE_ITEMS) {
+            inventory.addBranch--;
+        }
         itemUsedThisLevel.addBranch = true;
         branches.push([]);
         renderBoard();
@@ -346,8 +580,10 @@ btnAddBranch.addEventListener('click', () => {
 });
 
 btnUndo.addEventListener('click', () => {
-    if (inventory.undo > 0 && moveHistory.length > 0) {
-        inventory.undo--;
+    if ((INFINITE_ITEMS || inventory.undo > 0) && moveHistory.length > 0) {
+        if (!INFINITE_ITEMS) {
+            inventory.undo--;
+        }
         itemUsedThisLevel.undo = true;
         branches = moveHistory.pop();
         selectedBranchIndex = null;
@@ -367,40 +603,18 @@ btnUndo.addEventListener('click', () => {
 
 btnHint.addEventListener('click', () => {
     checkStartTimer();
-    if (inventory.hint > 0) {
-        let possibleMoves = [];
-        for (let i = 0; i < branches.length; i++) {
-            const src = branches[i];
-            if (src.length === 0) continue;
-            if (src.length === BIRDS_PER_BRANCH && src.every(c => c === src[0])) continue;
-            
-            const topColor = src[src.length - 1];
-            const isOnlyOneColor = src.every(c => c === topColor);
-
-            for (let j = 0; j < branches.length; j++) {
-                if (i === j) continue;
-                const dst = branches[j];
-                if (dst.length === BIRDS_PER_BRANCH) continue;
-                
-                if (dst.length === 0) {
-                    if (!isOnlyOneColor) {
-                        possibleMoves.push({ src: i, dst: j, weight: 1 });
-                    }
-                } else {
-                    if (dst[dst.length - 1] === topColor) {
-                        possibleMoves.push({ src: i, dst: j, weight: 2 });
-                    }
-                }
-            }
-        }
+    if (INFINITE_ITEMS || inventory.hint > 0) {
+        // 使用解題器尋找從當前狀態到獲勝的步驟路徑
+        const path = solveGame(branches);
         
-        if (possibleMoves.length > 0) {
-            inventory.hint--;
+        if (path && path.length > 0) {
+            if (!INFINITE_ITEMS) {
+                inventory.hint--;
+            }
             itemUsedThisLevel.hint = true;
             renderItems();
             
-            possibleMoves.sort((a, b) => b.weight - a.weight);
-            const hintMove = possibleMoves[0];
+            const hintMove = path[0];
             
             const srcDiv = document.querySelector(`.branch[data-index="${hintMove.src}"]`);
             const dstDiv = document.querySelector(`.branch[data-index="${hintMove.dst}"]`);
@@ -411,9 +625,13 @@ btnHint.addEventListener('click', () => {
             setTimeout(() => {
                 if (srcDiv) srcDiv.classList.remove('hint-highlight');
                 if (dstDiv) dstDiv.classList.remove('hint-highlight');
-            }, 2000);
+                
+                performMoveWithAnimation(hintMove.src, hintMove.dst, hintMove.count, () => {
+                    checkVictory();
+                });
+            }, 800);
         } else {
-            alert("目前沒有可以移動的步驟！");
+            alert("當前棋盤狀態已無解！建議點擊「上一步」返回或按右上方「重新開始」🔄");
         }
     }
 });
