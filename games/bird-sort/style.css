@@ -390,9 +390,9 @@ header {
 
 .items-container {
     display: flex;
-    justify-content: space-between;
-    padding: 10px 15px;
-    gap: 15px;
+    justify-content: center;
+    padding: 10px 15px 35px 15px;
+    gap: 35px;
     z-index: 5;
 }
 
@@ -400,18 +400,17 @@ header {
     background: rgba(255, 255, 255, 0.25);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    padding: 12px 5px;
-    border-radius: 16px;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
     font-weight: bold;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 6px;
     position: relative;
     cursor: pointer;
     backdrop-filter: blur(5px);
     transition: transform 0.2s, background 0.2s;
-    flex: 1;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
@@ -435,21 +434,23 @@ header {
 }
 
 .item-btn .icon {
-    font-size: 28px;
+    font-size: 32px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-    margin-bottom: 2px;
 }
 
 .item-btn .item-name {
+    position: absolute;
+    bottom: -26px;
     font-size: 0.85rem;
     letter-spacing: 1px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    white-space: nowrap;
 }
 
 .item-btn .badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -2px;
+    right: -2px;
     background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
     color: white;
     font-size: 0.8rem;
@@ -500,14 +501,16 @@ header {
         height: 36px;
     }
     .items-container {
-        padding: 5px 10px;
-        gap: 10px;
+        padding: 5px 10px 30px 10px;
+        gap: 20px;
     }
     .item-btn {
-        padding: 8px 5px;
+        width: 55px;
+        height: 55px;
     }
     .item-btn .item-name {
         font-size: 0.75rem;
+        bottom: -22px;
     }
     .item-btn .icon {
         font-size: 24px;
