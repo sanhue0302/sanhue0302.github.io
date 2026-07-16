@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <title>Games</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/pages.css">
+</head>
+<body style="align-items: flex-start; padding-top: 3em;">
+  <div class="page-content" style="max-width: 900px;">
+    <h1>遊戲專區</h1>
+    <p style="color: #666; margin-bottom: 2em;">選擇一款遊戲開始挑戰吧！點擊卡片將自動進入全螢幕遊戲模式。</p>
+    
+    <div class="games-grid">
+      <!-- Archery -->
+      <a href="../games/arch/index.html" target="showcase" class="game-card">
+        <div class="game-card-icon bg-gradient-1">
+          <i class="fas fa-bullseye"></i>
+        </div>
+        <div class="game-card-content">
+          <h3>弓箭射擊</h3>
+          <p>測試你的眼力與預判能力，拉滿弓弦射中目標！</p>
+        </div>
+      </a>
+
+      <!-- Suika -->
+      <a href="../games/suika/index.html" target="showcase" class="game-card">
+        <div class="game-card-icon bg-gradient-2">
+          <i class="fas fa-lemon"></i>
+        </div>
+        <div class="game-card-content">
+          <h3>水果合併</h3>
+          <p>經典合成遊戲，將相同的小水果合成一顆大西瓜。</p>
+        </div>
+      </a>
+
+      <!-- Juice -->
+      <a href="../games/juice/index.html" target="showcase" class="game-card">
+        <div class="game-card-icon bg-gradient-3">
+          <i class="fas fa-glass-martini-alt"></i>
+        </div>
+        <div class="game-card-content">
+          <h3>果汁合併</h3>
+          <p>與水果合併類似，但這次我們來挑戰合成特大號果汁！</p>
+        </div>
+      </a>
+
+      <!-- Bird Sort -->
+      <a href="../games/bird-sort/index.html" target="showcase" class="game-card">
+        <div class="game-card-icon bg-gradient-4">
+          <i class="fas fa-crow"></i>
+        </div>
+        <div class="game-card-content">
+          <h3>小鳥排序</h3>
+          <p>動動大腦，將相同顏色的鳥兒整理到同一個樹枝上。</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- A small script to notify parent window when a link is clicked -->
+  <script>
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Find the parent window's checkGameMode function if possible,
+        // or let the parent window's event listener catch it.
+        // The parent main.js handles this by checking all clicks on a[target="showcase"],
+        // but since this is in an iframe, the parent needs a message.
+        e.preventDefault();
+        const url = card.getAttribute('href');
+        
+        // Use postMessage to notify the parent window to change the iframe src and trigger game mode
+        window.parent.postMessage({
+            type: 'NAVIGATE_TO_GAME',
+            url: url
+        }, '*');
+      });
+    });
+  </script>
+</body>
+</html>

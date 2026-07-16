@@ -1,37 +1,114 @@
 /* General Page Content Styles */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f5f5f7;
+    color: #1d1d1f;
     margin: 0;
     padding: 2em;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 4em); /* Full height minus padding */
+    min-height: calc(100vh - 4em);
 }
 
 .page-content {
-    max-width: 800px;
+    max-width: 980px;
     width: 100%;
     text-align: center;
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 0.2em;
+    color: #1d1d1f;
+}
+
+p {
+    font-size: 1.1em;
+    color: #86868b;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
 }
 
 /* --- Home Page Styles --- */
 .home-icon {
     font-size: 5em;
-    color: var(--accent-color, #3498db);
+    color: #0066cc;
     margin-bottom: 0.5em;
 }
 
 /* --- About Page Styles --- */
 .skill-tag {
     display: inline-block;
-    background-color: var(--accent-color, #3498db);
+    background-color: #0066cc;
     color: white;
-    padding: 0.3em 0.8em;
-    border-radius: 15px;
-    font-size: 0.9em;
-    margin: 0.2em;
-    font-weight: normal; /* Override strong tag bolding */
+    padding: 0.4em 1em;
+    border-radius: 18px;
+    font-size: 0.85em;
+    margin: 0.3em;
+    font-weight: 500;
+    letter-spacing: 0.01em;
 }
+
+/* --- Games Page Styles --- */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+    margin-top: 3em;
+    padding: 0 1em;
+}
+
+.game-card {
+    background: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+    text-decoration: none;
+    color: #1d1d1f;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.02);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.game-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 16px 32px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.game-card-icon {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4em;
+    color: #1d1d1f;
+}
+
+.game-card-content {
+    padding: 24px;
+    text-align: center;
+}
+
+.game-card h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.4em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #1d1d1f;
+}
+
+.game-card p {
+    margin: 0;
+    font-size: 0.95em;
+    color: #86868b;
+    line-height: 1.5;
+}
+
+/* Soft gradients for Apple aesthetic */
+.bg-gradient-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); color: #fff; }
+.bg-gradient-2 { background: linear-gradient(135deg, #A1C4FD 0%, #C2E9FB 100%); color: #fff; }
+.bg-gradient-3 { background: linear-gradient(135deg, #84FAB0 0%, #8FD3F4 100%); color: #fff; }
+.bg-gradient-4 { background: linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%); color: #fff; }

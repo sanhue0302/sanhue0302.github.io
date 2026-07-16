@@ -7,20 +7,7 @@ const menuData = [
   {
     text: 'Games',
     icon: 'fas fa-gamepad',
-    submenu: [
-      {
-        text: '弓箭射擊',
-        link: 'games/arch.html'
-      },
-      {
-        text: '水果合併',
-        link: 'games/suika.html'
-      },
-      {
-        text: '果汁合併',
-        link: 'games/juice.html'
-      }
-    ]
+    link: 'pages/games.html'
   },
   {
     text: 'About',

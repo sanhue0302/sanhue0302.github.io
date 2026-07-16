@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const showcaseFrame = document.querySelector('iframe[name="showcase"]');
-    let sidebar, toggleBtn, mobileMenuBtn, overlay;
-
+    
     // 0. Inject SEO Metadata
     function injectMetadata() {
         if (typeof seoData === 'undefined') return;
@@ -28,137 +27,211 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (seoData.og) {
             for (const key in seoData.og) {
-                if (seoData.og[key]) { // Only add if content exists
+                if (seoData.og[key]) {
                     createOgMeta(key, seoData.og[key]);
                 }
             }
         }
     }
 
-    // 1. Create All UI Elements
-    function createUI() {
-        const sidebarContainer = document.getElementById('sidebar-container');
-        // Mobile-only elements
-        mobileMenuBtn = document.createElement('button');
-        mobileMenuBtn.id = 'mobile-menu-btn';
-        mobileMenuBtn.innerHTML = `<i class="fas fa-bars"></i>`;
-        document.body.appendChild(mobileMenuBtn);
-
-        overlay = document.createElement('div');
-        overlay.id = 'overlay';
-        document.body.appendChild(overlay);
-
-        // Sidebar structure
-        const sidebarDiv = document.createElement('div');
-        sidebarDiv.id = 'sidebar';
-        sidebarDiv.innerHTML = `
-            <div class="sidebar-header">
-                <h2>Sanhue0302</h2>
-                <button id="toggle-btn"><i class="fas fa-chevron-left"></i></button>
-            </div>
-            <ul id="sidebar-nav"></ul>
-        `;
-        sidebarContainer.appendChild(sidebarDiv);
-
-        // Assign global vars
-        sidebar = document.getElementById('sidebar');
-        toggleBtn = document.getElementById('toggle-btn');
-
-        populateMenu();
-        setupInteractions();
-    }
-
-    // 2. Populate Menu from Data
-    function populateMenu() {
-        const nav = document.getElementById('sidebar-nav');
-        if (!nav || typeof menuData === 'undefined') return;
+    // 1. Populate Menus from Data
+    function populateMenus() {
+        const headerNav = document.getElementById('header-nav');
+        const mobileNavList = document.getElementById('mobile-nav-list');
+        
+        if (!headerNav || !mobileNavList || typeof menuData === 'undefined') return;
 
         menuData.forEach(item => {
-            const li = document.createElement('li');
+            // Desktop Header Nav
+            const navItem = document.createElement('div');
+            navItem.className = 'nav-item';
+            
             if (item.submenu) {
-                li.innerHTML = `
-                    <div class="menu-toggle">
-                        <i class="${item.icon} icon"></i>
-                        <span class="link-text">${item.text}</span>
-                        <i class="fas fa-chevron-right submenu-indicator"></i>
-                    </div>
-                    <ul class="submenu"></ul>
+                navItem.innerHTML = `
+                    <button class="nav-link">
+                        <i class="${item.icon}"></i>
+                        <span>${item.text}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                    </button>
+                    <div class="nav-dropdown"></div>
                 `;
-                const submenuUl = li.querySelector('.submenu');
+                const dropdown = navItem.querySelector('.nav-dropdown');
                 item.submenu.forEach(subItem => {
-                    const subLi = document.createElement('li');
-                    subLi.innerHTML = `<a href="${subItem.link}" target="showcase">${subItem.text}</a>`;
-                    submenuUl.appendChild(subLi);
+                    const subLink = document.createElement('a');
+                    subLink.href = subItem.link;
+                    subLink.target = "showcase";
+                    subLink.textContent = subItem.text;
+                    subLink.dataset.url = subItem.link;
+                    dropdown.appendChild(subLink);
                 });
             } else {
-                li.innerHTML = `<a href="${item.link}" target="showcase"><i class="${item.icon} icon"></i><span class="link-text">${item.text}</span></a>`;
+                navItem.innerHTML = `<a href="${item.link}" target="showcase" class="nav-link" data-url="${item.link}"><i class="${item.icon}"></i><span>${item.text}</span></a>`;
             }
-            nav.appendChild(li);
-        });
-    }
+            headerNav.appendChild(navItem);
 
-    // 3. Setup All Interactions
-    function setupInteractions() {
-        const toggleBtnIcon = toggleBtn.querySelector('i');
-
-        // Sidebar toggle button (for both mobile and desktop)
-        toggleBtn.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                document.body.classList.remove('sidebar-open');
+            // Mobile Drawer Nav
+            const mobileLi = document.createElement('li');
+            if (item.submenu) {
+                mobileLi.innerHTML = `
+                    <button class="mobile-link">
+                        <i class="${item.icon}"></i>
+                        <span>${item.text}</span>
+                        <i class="fas fa-chevron-right mobile-submenu-indicator"></i>
+                    </button>
+                    <ul class="mobile-submenu"></ul>
+                `;
+                const submenu = mobileLi.querySelector('.mobile-submenu');
+                item.submenu.forEach(subItem => {
+                    const subLi = document.createElement('li');
+                    subLi.innerHTML = `<a href="${subItem.link}" target="showcase" data-url="${subItem.link}">${subItem.text}</a>`;
+                    submenu.appendChild(subLi);
+                });
             } else {
-                sidebar.classList.toggle('collapsed');
-                if (sidebar.classList.contains('collapsed')) {
-                    closeAllSubmenus();
-                    toggleBtnIcon.classList.replace('fa-chevron-left', 'fa-bars');
-                } else {
-                    toggleBtnIcon.classList.replace('fa-bars', 'fa-chevron-left');
-                }
+                mobileLi.innerHTML = `<a href="${item.link}" target="showcase" class="mobile-link" data-url="${item.link}"><i class="${item.icon}"></i><span>${item.text}</span></a>`;
             }
-        });
-
-        // Mobile hamburger button
-        mobileMenuBtn.addEventListener('click', () => document.body.classList.add('sidebar-open'));
-        
-        // Overlay closes the sidebar
-        overlay.addEventListener('click', () => document.body.classList.remove('sidebar-open'));
-
-        // Submenu toggles
-        document.querySelectorAll('.menu-toggle').forEach(toggle => {
-            toggle.addEventListener('click', (e) => {
-                if (sidebar.classList.contains('collapsed')) return;
-                const submenu = e.currentTarget.nextElementSibling;
-                const indicator = e.currentTarget.querySelector('.submenu-indicator');
-                submenu.classList.toggle('open');
-                indicator.classList.toggle('open');
-            });
-        });
-
-        // Close mobile sidebar when a link is clicked
-        document.querySelectorAll('#sidebar-nav a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 768) { // Only on mobile
-                    document.body.classList.remove('sidebar-open');
-                }
-            });
+            mobileNavList.appendChild(mobileLi);
         });
     }
 
-    function closeAllSubmenus() {
-        document.querySelectorAll('.submenu').forEach(sm => sm.classList.remove('open'));
-        document.querySelectorAll('.submenu-indicator').forEach(ind => ind.classList.remove('open'));
+    // 2. Setup Interactions
+    function setupInteractions() {
+        // Mobile Drawer Toggle
+        const toggleBtn = document.getElementById('mobile-nav-toggle');
+        const closeBtn = document.getElementById('drawer-close-btn');
+        const overlay = document.getElementById('mobile-nav-overlay');
+        
+        const openDrawer = () => document.body.classList.add('drawer-open');
+        const closeDrawer = () => document.body.classList.remove('drawer-open');
+
+        if (toggleBtn) toggleBtn.addEventListener('click', openDrawer);
+        if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+        if (overlay) overlay.addEventListener('click', closeDrawer);
+
+        // Mobile Submenu Toggles
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const nextEl = e.currentTarget.nextElementSibling;
+                if (nextEl && nextEl.classList.contains('mobile-submenu')) {
+                    e.preventDefault();
+                    nextEl.classList.toggle('open');
+                    const indicator = e.currentTarget.querySelector('.mobile-submenu-indicator');
+                    if (indicator) indicator.classList.toggle('open');
+                } else if (e.currentTarget.tagName === 'A') {
+                    // Close drawer when a regular link is clicked
+                    closeDrawer();
+                }
+            });
+        });
+
+        // Close drawer when mobile submenu links are clicked
+        document.querySelectorAll('.mobile-submenu a').forEach(link => {
+            link.addEventListener('click', closeDrawer);
+        });
+
+        // Handle link clicks to toggle game mode
+        document.querySelectorAll('a[target="showcase"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const url = e.currentTarget.getAttribute('href') || e.currentTarget.dataset.url;
+                checkGameMode(url);
+            });
+        });
+
+        // Header Logo click (go home)
+        const logo = document.getElementById('header-logo');
+        if (logo) {
+            logo.addEventListener('click', (e) => {
+                e.preventDefault();
+                showcaseFrame.src = 'pages/home.html';
+                checkGameMode('pages/home.html');
+            });
+        }
+
+        // Desktop Dropdown Toggles (optional, for touch on desktop)
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const link = item.querySelector('button.nav-link');
+            if (link) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    item.classList.toggle('dropdown-open');
+                });
+            }
+            // Close dropdown when mouse leaves
+            item.addEventListener('mouseleave', () => {
+                item.classList.remove('dropdown-open');
+            });
+        });
+        // Close dropdown when a link inside is clicked
+        document.querySelectorAll('.nav-dropdown a').forEach(link => {
+            link.addEventListener('click', () => {
+                link.closest('.nav-item').classList.remove('dropdown-open');
+            });
+        });
+
+        // Game FAB Interactions
+        const fabBtn = document.getElementById('game-fab-btn');
+        const fabPanel = document.getElementById('game-fab-panel');
+        const backBtn = document.getElementById('fab-back-btn');
+
+        if (fabBtn && fabPanel) {
+            fabBtn.addEventListener('click', () => {
+                fabPanel.classList.toggle('hidden');
+            });
+            
+            // Close panel when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!fabBtn.contains(e.target) && !fabPanel.contains(e.target)) {
+                    fabPanel.classList.add('hidden');
+                }
+            });
+        }
+
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                showcaseFrame.src = 'pages/home.html';
+                checkGameMode('pages/home.html');
+                if (fabPanel) fabPanel.classList.add('hidden');
+            });
+        }
+
+        // Listen for messages from iframe (e.g., from games.html)
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'NAVIGATE_TO_GAME') {
+                const url = e.data.url;
+                showcaseFrame.src = url;
+                checkGameMode(url);
+            }
+        });
+    }
+
+    // 3. Game Mode Logic
+    function checkGameMode(url) {
+        if (!url) return;
+        
+        const isGame = url.includes('games/');
+        const fab = document.getElementById('game-fab');
+        
+        if (isGame) {
+            document.body.classList.add('game-mode');
+            if (fab) fab.classList.remove('hidden');
+        } else {
+            document.body.classList.remove('game-mode');
+            if (fab) fab.classList.add('hidden');
+        }
     }
 
     // Set initial page
     function setInitialPage() {
+        let startUrl = 'pages/home.html';
         if (typeof menuData !== 'undefined' && menuData.length > 0 && menuData[0].link) {
-            showcaseFrame.src = menuData[0].link;
-        } else {
-            showcaseFrame.src = 'pages/home.html'; // Default to home
+            startUrl = menuData[0].link;
         }
+        showcaseFrame.src = startUrl;
+        checkGameMode(startUrl);
     }
 
     // --- Initialize ---
     injectMetadata();
-    createUI();
+    populateMenus();
+    setupInteractions();
     setInitialPage();
 });
