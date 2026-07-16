@@ -289,7 +289,7 @@ header {
     background: rgba(255, 255, 255, 0.12) !important;
     border: 2px dashed rgba(255, 255, 255, 0.35);
     box-shadow: none;
-    pointer-events: none;
+    cursor: pointer;
 }
 
 .bird.empty-slot::before,
