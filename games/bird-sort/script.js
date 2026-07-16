@@ -583,6 +583,14 @@ function checkVictory() {
         setTimeout(() => {
             victoryModal.classList.remove('hidden');
         }, 300);
+    } else {
+        // 當前未通關，檢查棋盤是否已無解
+        const path = solveGame(branches);
+        if (!path || path.length === 0) {
+            setTimeout(() => {
+                noSolutionModal.classList.remove('hidden');
+            }, 600); // 延遲 600ms 等最後一隻飛行的鳥降落動畫跑完
+        }
     }
 }
 
