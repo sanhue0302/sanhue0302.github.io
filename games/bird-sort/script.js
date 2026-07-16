@@ -7,7 +7,7 @@ const noSolutionModal = document.getElementById('no-solution-modal');
 const restartLevelBtn = document.getElementById('restart-level-btn');
 
 const INFINITE_ITEMS = false; // 暫時改為無限次數
-const CHECK_NO_SOLUTION = true; // 是否開啟「每步自動檢查無解」的功能
+const CHECK_NO_SOLUTION = false; // 是否開啟「每步自動檢查無解」的功能
 
 let currentLevel = 1;
 let branches = [];
