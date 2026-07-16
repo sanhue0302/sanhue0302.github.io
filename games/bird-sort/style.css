@@ -391,8 +391,8 @@ header {
 .items-container {
     display: flex;
     justify-content: center;
-    padding: 10px 15px 35px 15px;
-    gap: 35px;
+    padding: 5px 15px 25px 15px;
+    gap: 25px;
     z-index: 5;
 }
 
@@ -400,8 +400,8 @@ header {
     background: rgba(255, 255, 255, 0.25);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    width: 65px;
-    height: 65px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     font-weight: bold;
     display: flex;
@@ -434,14 +434,14 @@ header {
 }
 
 .item-btn .icon {
-    font-size: 32px;
+    font-size: 24px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
 }
 
 .item-btn .item-name {
     position: absolute;
-    bottom: -26px;
-    font-size: 0.85rem;
+    bottom: -22px;
+    font-size: 0.75rem;
     letter-spacing: 1px;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
     white-space: nowrap;
@@ -501,19 +501,19 @@ header {
         height: 36px;
     }
     .items-container {
-        padding: 5px 10px 30px 10px;
-        gap: 20px;
+        padding: 5px 10px 22px 10px;
+        gap: 15px;
     }
     .item-btn {
-        width: 55px;
-        height: 55px;
+        width: 42px;
+        height: 42px;
     }
     .item-btn .item-name {
-        font-size: 0.75rem;
-        bottom: -22px;
+        font-size: 0.7rem;
+        bottom: -20px;
     }
     .item-btn .icon {
-        font-size: 24px;
+        font-size: 20px;
     }
     .branches-container {
         gap: 50px;
