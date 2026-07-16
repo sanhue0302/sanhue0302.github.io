@@ -382,7 +382,9 @@ function performMoveWithAnimation(srcIndex, dstIndex, moveCount, callback) {
 
     for (let i = 0; i < moveCount; i++) {
         const newEl = dstDiv.children[newStartIndex + i];
-        const oldInfo = movingBirdElements[i];
+        // 倒序匹配源小鳥與目標位置（最上面的鳥先飛，降落在最下面）
+        const oldInfo = movingBirdElements[moveCount - 1 - i];
+        
         if (newEl && oldInfo) {
             const newRect = newEl.getBoundingClientRect();
             
@@ -394,18 +396,17 @@ function performMoveWithAnimation(srcIndex, dstIndex, moveCount, callback) {
                 newEl.style.transition = '';
                 newEl.style.transform = '';
                 newEl.style.zIndex = '';
+                newEl.style.transitionDelay = '';
                 animPromises.push(Promise.resolve());
             } else {
-                // 立即平移回初始位置（無過渡效果）
+                const delayMs = i * 120; // 每隻鳥延遲 120ms 飛出，形成一隻隻跟隨的效果
+
+                // 立即平移回初始位置，並加上傾角與略微放大以模擬起飛
                 newEl.style.transition = 'none';
-                newEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                newEl.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx < 0 ? 12 : -12}deg) scale(1.15)`;
                 newEl.style.zIndex = '1000'; // 確保浮於上方
 
                 newEl.getBoundingClientRect(); // 強制重繪
-
-                // 開啟過渡並平移回最終位置
-                newEl.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
-                newEl.style.transform = 'translate(0, 0)';
 
                 const p = new Promise(resolve => {
                     let resolved = false;
@@ -416,9 +417,10 @@ function performMoveWithAnimation(srcIndex, dstIndex, moveCount, callback) {
                             newEl.style.transition = '';
                             newEl.style.transform = '';
                             newEl.style.zIndex = '';
+                            newEl.style.transitionDelay = '';
                             resolve();
                         }
-                    }, 550); // 550ms 安全退場機制 (動畫為 0.45s)
+                    }, delayMs + 650); // 包含延遲時間的安全退場機制
 
                     function handler() {
                         if (!resolved) {
@@ -428,10 +430,20 @@ function performMoveWithAnimation(srcIndex, dstIndex, moveCount, callback) {
                             newEl.style.transition = '';
                             newEl.style.transform = '';
                             newEl.style.zIndex = '';
+                            newEl.style.transitionDelay = '';
                             resolve();
                         }
                     }
                     newEl.addEventListener('transitionend', handler);
+
+                    // 使用雙重 requestAnimationFrame 確保瀏覽器已繪製初始起飛位置後，才發起飛行動畫，防止被瀏覽器合併樣式
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            newEl.style.transition = 'transform 0.45s cubic-bezier(0.25, 1, 0.5, 1)';
+                            newEl.style.transitionDelay = `${delayMs}ms`;
+                            newEl.style.transform = 'translate(0, 0) rotate(0deg) scale(1)';
+                        });
+                    });
                 });
                 animPromises.push(p);
             }
