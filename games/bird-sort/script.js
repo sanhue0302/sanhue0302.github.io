@@ -6,7 +6,8 @@ const nextLevelBtn = document.getElementById('next-level-btn');
 const noSolutionModal = document.getElementById('no-solution-modal');
 const restartLevelBtn = document.getElementById('restart-level-btn');
 
-const INFINITE_ITEMS = true; // 暫時改為無限次數
+const INFINITE_ITEMS = false; // 暫時改為無限次數
+const CHECK_NO_SOLUTION = true; // 是否開啟「每步自動檢查無解」的功能
 
 let currentLevel = 1;
 let branches = [];
@@ -14,7 +15,7 @@ let selectedBranchIndex = null;
 let completedBranchIndices = new Set();
 let BIRDS_PER_BRANCH = 4;
 
-let inventory = { addBranch: 1, undo: 1, hint: 1 };
+let inventory = { addBranch: 3, undo: 3, hint: 3 };
 let itemUsedThisLevel = { addBranch: false, undo: false, hint: false };
 let moveHistory = [];
 let bestTimes = {};
@@ -27,7 +28,7 @@ function loadData() {
     const savedData = JSON.parse(localStorage.getItem('birdSort_saveData'));
     if (savedData) {
         currentLevel = savedData.currentLevel || 1;
-        inventory = savedData.inventory || { addBranch: 1, undo: 1, hint: 1 };
+        inventory = savedData.inventory || { addBranch: 3, undo: 3, hint: 3 };
     }
     const savedTimes = JSON.parse(localStorage.getItem('birdSort_bestTimes'));
     if (savedTimes) {
@@ -585,11 +586,13 @@ function checkVictory() {
         }, 300);
     } else {
         // 當前未通關，檢查棋盤是否已無解
-        const path = solveGame(branches);
-        if (!path || path.length === 0) {
-            setTimeout(() => {
-                noSolutionModal.classList.remove('hidden');
-            }, 600); // 延遲 600ms 等最後一隻飛行的鳥降落動畫跑完
+        if (CHECK_NO_SOLUTION) {
+            const path = solveGame(branches);
+            if (!path || path.length === 0) {
+                setTimeout(() => {
+                    noSolutionModal.classList.remove('hidden');
+                }, 600); // 延遲 600ms 等最後一隻飛行的鳥降落動畫跑完
+            }
         }
     }
 }
