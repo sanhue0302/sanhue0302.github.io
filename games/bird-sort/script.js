@@ -21,7 +21,7 @@ let bestTimes = {};
 let timerInterval = null;
 let secondsElapsed = 0;
 let hasStartedTimer = false;
-const timerSpan = document.getElementById('timer');
+const timerSpan = document.getElementById('timer-val');
 
 function loadData() {
     const savedData = JSON.parse(localStorage.getItem('birdSort_saveData'));
@@ -61,7 +61,7 @@ function checkStartTimer() {
 function updateTimerDisplay() {
     const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
     const s = (secondsElapsed % 60).toString().padStart(2, '0');
-    if (timerSpan) timerSpan.textContent = `⏱️ ${m}:${s}`;
+    if (timerSpan) timerSpan.textContent = `${m}:${s}`;
 }
 
 function stopTimer() {
