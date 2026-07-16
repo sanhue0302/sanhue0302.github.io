@@ -29,19 +29,22 @@ function loadData() {
     if (savedData) {
         currentLevel = savedData.currentLevel || 1;
         inventory = savedData.inventory || { addBranch: 3, undo: 3, hint: 3 };
+        if (savedData.bestTimes) bestTimes = savedData.bestTimes;
     }
-    const savedTimes = JSON.parse(localStorage.getItem('birdSort_bestTimes'));
-    if (savedTimes) {
-        bestTimes = savedTimes;
+    
+    // 為了相容舊版存檔，若目前沒有 bestTimes，嘗試讀取舊版的獨立存檔
+    if (Object.keys(bestTimes).length === 0) {
+        const savedTimes = JSON.parse(localStorage.getItem('birdSort_bestTimes'));
+        if (savedTimes) bestTimes = savedTimes;
     }
 }
 
 function saveData() {
     localStorage.setItem('birdSort_saveData', JSON.stringify({
         currentLevel,
-        inventory
+        inventory,
+        bestTimes
     }));
-    localStorage.setItem('birdSort_bestTimes', JSON.stringify(bestTimes));
 }
 
 function startTimer() {
