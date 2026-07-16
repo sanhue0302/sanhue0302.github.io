@@ -292,11 +292,18 @@ header {
     border-radius: 50%;
 }
 
-.bird.color-0 { background: #ff5757; }
-.bird.color-1 { background: #5ce1e6; }
-.bird.color-2 { background: #7ed957; }
-.bird.color-3 { background: #cb6ce6; }
-.bird.color-4 { background: #ffde59; }
+.bird.color-0 { background: #ff5757; } /* 紅色 */
+.bird.color-1 { background: #5ce1e6; } /* 青藍 */
+.bird.color-2 { background: #7ed957; } /* 嫩綠 */
+.bird.color-3 { background: #cb6ce6; } /* 紫色 */
+.bird.color-4 { background: #ffde59; } /* 黃色 */
+.bird.color-5 { background: #ff914d; } /* 橙色 */
+.bird.color-6 { background: #38b6ff; } /* 天藍 */
+.bird.color-7 { background: #ff66c4; } /* 粉紅 */
+.bird.color-8 { background: #8c52ff; } /* 靛紫 */
+.bird.color-9 { background: #00a86b; } /* 翡翠綠 */
+.bird.color-10 { background: #964b00; } /* 棕色 */
+.bird.color-11 { background: #7f8c8d; } /* 灰色 */
 
 .bird.empty-slot {
     background: rgba(255, 255, 255, 0.12) !important;
