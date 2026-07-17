@@ -38,8 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateMenus() {
         const headerNav = document.getElementById('header-nav');
         const mobileNavList = document.getElementById('mobile-nav-list');
+        const mobileNavToggle = document.getElementById('mobile-nav-toggle');
         
         if (!headerNav || !mobileNavList || typeof menuData === 'undefined') return;
+
+        if (menuData.length === 0) {
+            if (mobileNavToggle) mobileNavToggle.style.display = 'none';
+            return;
+        }
 
         menuData.forEach(item => {
             // Desktop Header Nav
@@ -141,8 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (logo) {
             logo.addEventListener('click', (e) => {
                 e.preventDefault();
-                showcaseFrame.src = 'pages/home.html';
-                checkGameMode('pages/home.html');
+                showcaseFrame.src = 'pages/games.html';
+                checkGameMode('pages/games.html');
             });
         }
 
@@ -187,8 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                showcaseFrame.src = 'pages/home.html';
-                checkGameMode('pages/home.html');
+                showcaseFrame.src = 'pages/games.html';
+                checkGameMode('pages/games.html');
                 if (fabPanel) fabPanel.classList.add('hidden');
             });
         }
@@ -221,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set initial page
     function setInitialPage() {
-        let startUrl = 'pages/home.html';
+        let startUrl = 'pages/games.html';
         if (typeof menuData !== 'undefined' && menuData.length > 0 && menuData[0].link) {
             startUrl = menuData[0].link;
         }

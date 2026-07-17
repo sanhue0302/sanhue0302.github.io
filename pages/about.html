@@ -5,15 +5,81 @@
   <meta charset="UTF-8">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="../assets/css/pages.css">
+  <style>
+    /* Card design for About page */
+    .about-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 3.5em 2.5em;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      margin: 0 auto;
+      max-width: 640px;
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    .profile-icon {
+      font-size: 3.5em;
+      margin-bottom: 0.5em;
+      background: linear-gradient(135deg, #0066cc 0%, #8ec5fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-block;
+    }
+    .divider {
+      border: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08), transparent);
+      margin: 2.2em 0;
+    }
+    .intro-text {
+      font-size: 1.15em;
+      font-weight: 500;
+      color: #1d1d1f;
+      line-height: 1.5;
+      margin-bottom: 1.5em;
+    }
+    .about-details {
+      margin-top: 1.5em;
+    }
+    .about-details p {
+      font-size: 1.05em;
+      color: #515154;
+      line-height: 1.6;
+      margin-bottom: 1em;
+    }
+    .welcome-action {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #0066cc;
+      margin-top: 1.8em;
+    }
+  </style>
 </head>
 <body>
   <div class="page-content">
-    <h1>Hi, I'm a Software Engineer!</h1>
-    <p>
-      我的開發足跡遍及 <strong class="skill-tag">Windows</strong> 和 <strong class="skill-tag">iOS</strong> 平台，同時也熱衷於使用 <strong class="skill-tag">Nuxt.js</strong> 來打造流暢的網頁應用。
-    </p>
-    <p>這個小空間主要用來展示我的 Side Project，記錄著學習與實作的軌跡。您會看到一些有趣的練習，其中也包含幾款和 AI 協作完成的小遊戲。</p>
-    <p>歡迎隨意看看，或點來玩玩！</p>
+    <div class="about-card">
+      <div class="profile-icon">
+        <i class="fas fa-rocket"></i>
+      </div>
+      <h1 style="font-size: 2.2em; font-weight: 700; margin-bottom: 0.4em;">歡迎來到我的個人空間</h1>
+      <p class="intro-text">這是一個展示 Side Project 的地方，記錄著學習與實作的軌跡，歡迎隨意探索！</p>
+      
+      <div class="divider"></div>
+      
+      <div class="about-details">
+        <h2 style="font-size: 1.6em; font-weight: 600; margin-bottom: 0.8em; color: #1d1d1f;">關於我</h2>
+        <p>
+          Hi, I'm a Software Engineer! <br>
+          我的開發足跡遍及 <strong class="skill-tag">Windows</strong> 和 <strong class="skill-tag">iOS</strong> 平台，同時也熱衷於使用 <strong class="skill-tag">Nuxt.js</strong> 來打造流暢的網頁應用。
+        </p>
+        <p>
+          這裡記錄著我學習與實作的軌跡。您會看到一些有趣的練習，其中也包含幾款和 AI 協作完成的小遊戲。
+        </p>
+        <p class="welcome-action">
+          歡迎隨意看看，或點來玩玩！
+        </p>
+      </div>
+    </div>
   </div>
 </body>
 </html>

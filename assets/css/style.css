@@ -436,6 +436,38 @@ iframe {
 #site-footer p {
   margin: 0;
 }
+.footer-container {
+  width: 100%;
+  max-width: 980px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+.footer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.75rem;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  border: 1px solid var(--border-subtle);
+}
+.footer-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+.footer-btn:active {
+  transform: scale(0.97);
+}
+.footer-btn i {
+  font-size: 0.8rem;
+}
 
 /* ============================================================
    Game Mode (fullscreen)
@@ -497,10 +529,6 @@ body.game-mode #site-footer {
   }
   #mobile-nav-overlay,
   #mobile-nav-drawer {
-    display: none;
-  }
-  /* 寬度足夠時隱藏標誌，讓選單置中 */
-  .header-logo {
     display: none;
   }
 }
