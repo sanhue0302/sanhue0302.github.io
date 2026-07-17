@@ -69,15 +69,25 @@
             { name: "Melon", radius: 130, color: "#91CF4266", mass: 5.5, emoji: "🍈" },
             { name: "Watermelon", radius: 155, color: "#23891466", mass: 6, emoji: "🍉" }
         ],
+        obstacles: [
+            { name: "Stone", radius: 25, color: "#888888", emoji: "🪨", mass: 8 }
+        ],
         levels: [
-            { targetItemIndex: 3 }, // Lv.1: Dekopon 🍊
-            { targetItemIndex: 4 }, // Lv.2: Orange 🍋
-            { targetItemIndex: 5 }, // Lv.3: Apple 🍎
-            { targetItemIndex: 6 }, // Lv.4: Pear 🍐
-            { targetItemIndex: 7 }, // Lv.5: Peach 🍑
-            { targetItemIndex: 8 }, // Lv.6: Pineapple 🍍
-            { targetItemIndex: 9 }, // Lv.7: Melon 🍈
-            { targetItemIndex: 10 } // Lv.8: Watermelon 🍉
+            { targetItemIndex: 3, targetCount: 1, obstacleProb: 0 },    // Lv.1: Dekopon 🍊 x1
+            { targetItemIndex: 4, targetCount: 1, obstacleProb: 0 },    // Lv.2: Orange 🍋 x1
+            { targetItemIndex: 5, targetCount: 1, obstacleProb: 0 },    // Lv.3: Apple 🍎 x1
+            { targetItemIndex: 6, targetCount: 1, obstacleProb: 0 },    // Lv.4: Pear 🍐 x1
+            { targetItemIndex: 7, targetCount: 1, obstacleProb: 0 },    // Lv.5: Peach 🍑 x1
+            { targetItemIndex: 8, targetCount: 1, obstacleProb: 0 },    // Lv.6: Pineapple 🍍 x1
+            { targetItemIndex: 9, targetCount: 1, obstacleProb: 0 },    // Lv.7: Melon 🍈 x1
+            { targetItemIndex: 10, targetCount: 1, obstacleProb: 0 },   // Lv.8: Watermelon 🍉 x1
+            
+            // Post-Watermelon levels
+            { targetItemIndex: 6, targetCount: 3, obstacleProb: 0.05 }, // Lv.9: Pear 🍐 x3 (5% obstacle)
+            { targetItemIndex: 7, targetCount: 3, obstacleProb: 0.08 }, // Lv.10: Peach 🍑 x3 (8% obstacle)
+            { targetItemIndex: 8, targetCount: 2, obstacleProb: 0.12 }, // Lv.11: Pineapple 🍍 x2 (12% obstacle)
+            { targetItemIndex: 9, targetCount: 2, obstacleProb: 0.15 }, // Lv.12: Melon 🍈 x2 (15% obstacle)
+            { targetItemIndex: 10, targetCount: 2, obstacleProb: 0.20 } // Lv.13: Watermelon 🍉 x2 (20% obstacle)
         ]
     };
 

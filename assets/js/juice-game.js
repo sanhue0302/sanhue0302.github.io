@@ -188,13 +188,18 @@ class JuiceGame extends MergeGameCore {
         ctx.fillText('Next', previewWidth / 2, 12);
         
         for (let i = 0; i < this.nextItemsQueue.length; i++) {
-            const itemIndex = this.nextItemsQueue[i];
-            const itemDef = this.config.items[itemIndex];
+            const nextItem = this.nextItemsQueue[i];
+            let itemDef;
+            if (nextItem.type === 'obstacle') {
+                itemDef = this.config.obstacles[nextItem.index];
+            } else {
+                itemDef = this.config.items[nextItem.index];
+            }
             const drawRadius = 16; 
             const cx = previewWidth / 2;
             const cy = 30 + i * 45;
             
-            this.drawCup(ctx, cx, cy, drawRadius, itemDef.color, itemIndex + 1, false);
+            this.drawCup(ctx, cx, cy, drawRadius, itemDef.color, nextItem.index + 1, false);
         }
     }
 

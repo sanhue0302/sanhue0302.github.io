@@ -9,10 +9,12 @@ class MergeGameCore {
         
         this.score = 0;
         this.isGameOver = false;
+        this.isTransitioning = false;
         this.currentBody = null;
         this.dropReady = true;
         this.gameOverTimer = null;
         this.nextItemsQueue = [];
+        this.spawnCounter = 0;
 
         this.gameWidth = 450;
         this.gameHeight = 700;
@@ -135,27 +137,56 @@ class MergeGameCore {
         Composite.add(this.engine.world, [...walls, dangerLine]);
     }
 
-    spawnNextItem() {
-        if (this.isGameOver) return;
-        
-        const { Bodies, Composite } = Matter;
-        const maxStartIndex = Math.min(2, this.config.items.length - 1);
-        
+    fillNextQueue() {
         while (this.nextItemsQueue.length < 2) {
-            this.nextItemsQueue.push(Math.floor(Math.random() * (maxStartIndex + 1)));
+            this.nextItemsQueue.push(this.generateRandomItem());
+        }
+    }
+
+    generateRandomItem() {
+        const maxStartIndex = Math.min(2, this.config.items.length - 1);
+        return { type: 'mergeItem', index: Math.floor(Math.random() * (maxStartIndex + 1)) };
+    }
+
+    spawnNextItem() {
+        if (this.isGameOver || this.isTransitioning) return;
+        
+        this.spawnCounter++;
+        const currentSpawnId = this.spawnCounter;
+        
+        this.fillNextQueue();
+        const nextItem = this.nextItemsQueue.shift();
+        this.fillNextQueue();
+        
+        let itemDef, label;
+        if (nextItem.type === 'obstacle') {
+            itemDef = this.config.obstacles[nextItem.index];
+            label = 'obstacle';
+        } else {
+            itemDef = this.config.items[nextItem.index];
+            label = 'mergeItem';
+        }
+
+        const spawnY = this.config.theme.invertGravity ? this.gameHeight - 80 : 80;
+        
+        if (this.onNextItemSpawned) {
+            this.onNextItemSpawned(itemDef, nextItem.index, () => {
+                if (this.spawnCounter === currentSpawnId && !this.isTransitioning && !this.isGameOver) {
+                    this.createCurrentBody(itemDef, label, nextItem.index, spawnY);
+                }
+            });
+            return;
         }
         
-        const itemIndex = this.nextItemsQueue.shift();
-        this.nextItemsQueue.push(Math.floor(Math.random() * (maxStartIndex + 1)));
-        
-        const itemDef = this.config.items[itemIndex];
-
-        const spawnY = this.config.theme.invertGravity ? this.gameHeight - 50 : 50;
-
+        this.createCurrentBody(itemDef, label, nextItem.index, spawnY);
+    }
+    
+    createCurrentBody(itemDef, label, itemIndex, spawnY) {
+        const { Bodies, Composite } = Matter;
         this.currentBody = Bodies.circle(this.gameWidth / 2, spawnY, itemDef.radius, {
             isStatic: true,
             render: { fillStyle: itemDef.color },
-            label: 'mergeItem',
+            label: label,
             itemIndex: itemIndex
         });
 
@@ -165,7 +196,7 @@ class MergeGameCore {
 
     setupInput() {
         const handleMove = (e) => {
-            if (!this.currentBody || !this.dropReady || this.isGameOver) return;
+            if (this.isTransitioning || !this.currentBody || !this.dropReady || this.isGameOver) return;
             
             let clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const rect = this.render.canvas.getBoundingClientRect();
@@ -173,7 +204,7 @@ class MergeGameCore {
             const scaleX = this.gameWidth / rect.width;
             let canvasX = (clientX - rect.left) * scaleX;
             
-            const spawnY = this.config.theme.invertGravity ? this.gameHeight - 50 : 50;
+            const spawnY = this.config.theme.invertGravity ? this.gameHeight - 80 : 80;
             const posScaleAtSpawn = 0.8 + (spawnY / this.gameHeight) * 0.15;
             let physicsX = this.gameWidth / 2 + (canvasX - this.gameWidth / 2) / posScaleAtSpawn;
             
@@ -184,10 +215,10 @@ class MergeGameCore {
         };
 
         const handleDrop = (e) => {
-            if (!this.currentBody || !this.dropReady || this.isGameOver) return;
+            if (this.isTransitioning || !this.currentBody || !this.dropReady || this.isGameOver) return;
             
             this.dropReady = false;
-            const spawnY = this.config.theme.invertGravity ? this.gameHeight - 50 : 50;
+            const spawnY = this.config.theme.invertGravity ? this.gameHeight - 80 : 80;
             
             if (e && (e.changedTouches || e.clientX)) {
                 let clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
@@ -279,14 +310,14 @@ class MergeGameCore {
                         this.score += (newIndex + 1) * 2;
                         this.container.querySelector('#mg-score').innerText = this.score;
                         
-                        this.onItemMerged(newIndex);
+                        this.onItemMerged(newIndex, newBody);
                     }
                 }
             }
         }
     }
 
-    onItemMerged(newIndex) {
+    onItemMerged(newIndex, newBody) {
         // To be implemented by subclasses
     }
 
@@ -306,6 +337,14 @@ class MergeGameCore {
                 
                 const scaleFactor = body.currentRadius / oldRadius;
                 Matter.Body.scale(body, scaleFactor, scaleFactor);
+            } else if (body.isShrinking) {
+                const oldRadius = body.currentRadius || body.circleRadius;
+                const newRadius = oldRadius * 0.8;
+                if (newRadius > 2) {
+                    const scaleFactor = newRadius / oldRadius;
+                    Matter.Body.scale(body, scaleFactor, scaleFactor);
+                    body.currentRadius = newRadius;
+                }
             }
         }
     }
@@ -357,6 +396,8 @@ class MergeGameCore {
         
         Composite.clear(this.engine.world);
         Engine.clear(this.engine);
+        
+        this.spawnCounter++;
         
         this.container.querySelector('#game-over').style.display = 'none';
         this.score = 0;
