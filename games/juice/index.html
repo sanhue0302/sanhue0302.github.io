@@ -37,6 +37,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="../../assets/js/merge-game-core.js"></script>
+<script src="../../assets/js/juice-game.js"></script>
 <script>
     const juiceConfig = {
         theme: {
@@ -45,6 +46,10 @@
             dangerLineColor: "#FF5252",
             invertGravity: true,
             pseudo3D: true
+        },
+        physics: {
+            frictionAir: 0.06,   // 桌面的滑動阻力較大 (空氣阻力代替)
+            dropVelocity: 6      // 在桌面上滑出的初始推力較小，顯得杯子比較重
         },
         items: [
             { name: "Small Shot", radius: 15, color: "#E1F5FE", mass: 1 },
@@ -62,7 +67,7 @@
     };
 
     window.onload = () => {
-        new MergeGame('game-container', juiceConfig);
+        new JuiceGame('game-container', juiceConfig);
     };
 </script>
 </body>

@@ -22,10 +22,18 @@
             height: 100%;
             max-width: 450px;
             max-height: 700px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), inset 0 30px 40px -10px rgba(100, 50, 0, 0.5);
             border-radius: 20px;
             box-sizing: border-box;
-            background: linear-gradient(to bottom, #FFF1DB 0%, #FFD185 100%);
+            background-color: #FDF1D9; /* Light wooden/cardboard base */
+            background-image: 
+                radial-gradient(circle at 50% -20%, rgba(255,255,255,0.6) 0%, transparent 60%),
+                linear-gradient(to bottom, transparent 0%, rgba(139, 69, 19, 0.15) 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(200, 150, 100, 0.1) 18px, rgba(200, 150, 100, 0.1) 20px),
+                repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(200, 150, 100, 0.1) 18px, rgba(200, 150, 100, 0.1) 20px);
+            border: 12px solid #D29A5A; /* Wooden frame border */
+            border-bottom: 16px solid #B87B3E; /* Thicker bottom border */
+            border-top: 8px solid #E6B579;
             position: relative;
         }
     </style>
@@ -36,6 +44,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="../../assets/js/merge-game-core.js"></script>
+<script src="../../assets/js/suika-game.js"></script>
 <script>
     const suikaConfig = {
         theme: {
@@ -43,23 +52,37 @@
             wallColor: "#E2B881",
             dangerLineColor: "#FF5252"
         },
+        physics: {
+            frictionAir: 0.01,   // 下落時空氣阻力小 (果凍感)
+            dropVelocity: 15     // 下落初速大
+        },
         items: [
-            { name: "Cherry", radius: 15, color: "#F9114E", mass: 1 },
-            { name: "Strawberry", radius: 22, color: "#F42E35", mass: 1.5 },
-            { name: "Grape", radius: 30, color: "#A657A6", mass: 2 },
-            { name: "Dekopon", radius: 40, color: "#FCA001", mass: 2.5 },
-            { name: "Orange", radius: 52, color: "#FA8C00", mass: 3 },
-            { name: "Apple", radius: 65, color: "#ED1826", mass: 3.5 },
-            { name: "Pear", radius: 80, color: "#D9D25F", mass: 4 },
-            { name: "Peach", radius: 95, color: "#F8B4C4", mass: 4.5 },
-            { name: "Pineapple", radius: 110, color: "#FBEA18", mass: 5 },
-            { name: "Melon", radius: 130, color: "#91CF42", mass: 5.5 },
-            { name: "Watermelon", radius: 155, color: "#238914", mass: 6 }
+            { name: "Cherry", radius: 15, color: "#F9114E66", mass: 1, emoji: "🍒" },
+            { name: "Strawberry", radius: 22, color: "#F42E3566", mass: 1.5, emoji: "🍓" },
+            { name: "Grape", radius: 30, color: "#A657A666", mass: 2, emoji: "🍇" },
+            { name: "Dekopon", radius: 40, color: "#FCA00166", mass: 2.5, emoji: "🍊" },
+            { name: "Orange", radius: 52, color: "#FA8C0066", mass: 3, emoji: "🍋" }, /* Using lemon as orange is Dekopon */
+            { name: "Apple", radius: 65, color: "#ED182666", mass: 3.5, emoji: "🍎" },
+            { name: "Pear", radius: 80, color: "#D9D25F66", mass: 4, emoji: "🍐" },
+            { name: "Peach", radius: 95, color: "#F8B4C466", mass: 4.5, emoji: "🍑" },
+            { name: "Pineapple", radius: 110, color: "#FBEA1866", mass: 5, emoji: "🍍" },
+            { name: "Melon", radius: 130, color: "#91CF4266", mass: 5.5, emoji: "🍈" },
+            { name: "Watermelon", radius: 155, color: "#23891466", mass: 6, emoji: "🍉" }
+        ],
+        levels: [
+            { targetItemIndex: 3 }, // Lv.1: Dekopon 🍊
+            { targetItemIndex: 4 }, // Lv.2: Orange 🍋
+            { targetItemIndex: 5 }, // Lv.3: Apple 🍎
+            { targetItemIndex: 6 }, // Lv.4: Pear 🍐
+            { targetItemIndex: 7 }, // Lv.5: Peach 🍑
+            { targetItemIndex: 8 }, // Lv.6: Pineapple 🍍
+            { targetItemIndex: 9 }, // Lv.7: Melon 🍈
+            { targetItemIndex: 10 } // Lv.8: Watermelon 🍉
         ]
     };
 
     window.onload = () => {
-        new MergeGame('game-container', suikaConfig);
+        new SuikaGame('game-container', suikaConfig);
     };
 </script>
 </body>

@@ -202,17 +202,17 @@ body.drawer-open #mobile-nav-overlay {
 #mobile-nav-drawer {
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0;
   width: 280px;
   max-width: 80vw;
   height: 100%;
   background: var(--bg-primary);
   z-index: 1200;
-  transform: translateX(100%);
+  transform: translateX(-100%);
   transition: transform 0.35s var(--ease-out-expo);
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
 }
 body.drawer-open #mobile-nav-drawer {
   transform: translateX(0);
@@ -475,8 +475,16 @@ body.game-mode #site-footer {
     justify-content: center;
   }
 
+  /* 漢堡按鈕移到左邊 */
+  .header-right {
+    order: -1;
+  }
+
+  /* 標誌絕對置中 */
   .header-left {
-    flex: 1;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
@@ -489,6 +497,10 @@ body.game-mode #site-footer {
   }
   #mobile-nav-overlay,
   #mobile-nav-drawer {
+    display: none;
+  }
+  /* 寬度足夠時隱藏標誌，讓選單置中 */
+  .header-logo {
     display: none;
   }
 }
