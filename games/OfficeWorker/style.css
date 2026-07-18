@@ -1,0 +1,557 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    user-select: none;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    max-width: 450px;
+    max-height: 800px;
+    background-color: #f5f6fa;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- Combat UI --- */
+#combat-ui {
+    flex: 1;
+    position: relative;
+    padding: 10px;
+    
+    /* 辦公室窗外夜景 / 辦公室內部實景 */
+    background: url('bg.svg') center/cover no-repeat;
+    
+    border-bottom: 2px solid #dcdde1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    transition: background 0.5s ease-in-out;
+}
+
+.sf-header {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 5px;
+    position: relative;
+    z-index: 2;
+}
+
+.sf-hp-wrapper {
+    flex: 1;
+    display: flex;
+}
+
+.sf-hp-wrapper.player-side {
+    justify-content: flex-end;
+    margin-right: -2px;
+}
+
+.sf-hp-wrapper.boss-side {
+    justify-content: flex-start;
+    margin-left: -2px;
+}
+
+.hp-bar-container.sf-hp-container {
+    width: 95%;
+    height: 24px;
+    background: #c0392b; /* SF depleted health color */
+    border: 3px solid #f1c40f; /* SF yellow border */
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+.hp-bar {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Player HP depletes right to left */
+.hp-bar.player {
+    background: linear-gradient(180deg, #f1c40f 0%, #f39c12 100%);
+    transform-origin: right;
+    float: right;
+}
+
+/* Boss HP depletes left to right */
+.hp-bar.boss {
+    background: linear-gradient(180deg, #f1c40f 0%, #f39c12 100%);
+    transform-origin: left;
+    float: left;
+}
+
+.hp-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0;
+    left: 0;
+    line-height: 18px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    display: none; /* Hide numbers to be more like SF, or keep them but small */
+}
+
+.sf-center-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    z-index: 5;
+    margin-top: -10px;
+}
+
+.ko-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    font-style: italic;
+    color: #f1c40f;
+    text-shadow: 2px 2px 0px #e74c3c, -1px -1px 0px #2c3e50;
+    margin-bottom: 2px;
+}
+
+.boss-timer {
+    font-size: 20px;
+    font-weight: 900;
+    color: #e74c3c;
+    background: transparent;
+    padding: 0;
+    border: none;
+    text-shadow: 2px 2px 0px #fff, -1px -1px 0px #fff;
+}
+
+.sf-names {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin: 5px auto 0;
+    z-index: 2;
+    position: relative;
+}
+
+.fighter-name {
+    font-size: 16px;
+    font-weight: 900;
+    color: #e1b12c;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
+}
+
+.sf-avatars {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    flex: 1;
+    padding: 0 10px;
+    margin-top: -30px; /* Overlap with names */
+}
+
+.sf-avatar {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    animation: breathe 3s ease-in-out infinite;
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+}
+
+@keyframes breathe {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05) translateY(-5px); }
+    100% { transform: scale(1); }
+}
+
+/* --- Grid Area --- */
+#grid-container {
+    flex: 2;
+    background: #1e272e;
+    padding: 10px;
+    display: grid;
+    gap: 5px;
+    /* Grid template will be set by JS based on level size */
+    justify-content: center;
+    align-content: center;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.grid-cell {
+    background: #2f3640;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1;
+    touch-action: none;
+}
+
+.grid-cell-empty {
+    aspect-ratio: 1 / 1;
+    pointer-events: none;
+}
+
+.block {
+    width: 90%;
+    height: 90%;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    cursor: grab;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: absolute;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.block:active {
+    cursor: grabbing;
+    transform: scale(0.85);
+}
+
+.prop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+    text-shadow: 0 0 5px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.5);
+    z-index: 2;
+    pointer-events: none;
+}
+.prop-overlay.cross {
+    font-size: 24px;
+    color: #ffda79;
+}
+
+/* --- Dialogue Overlay --- */
+#dialogue-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+#dialogue-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.dialogue-box {
+    background: #ffffff;
+    padding: 15px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    display: flex;
+    gap: 15px;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+    cursor: pointer;
+}
+
+.dialogue-avatar {
+    font-size: 50px;
+}
+
+.dialogue-content {
+    flex-grow: 1;
+}
+
+.dialogue-name {
+    font-weight: bold;
+    color: #0097e6;
+    margin-bottom: 5px;
+}
+
+.dialogue-text {
+    color: #2f3640;
+    line-height: 1.5;
+    font-size: 16px;
+}
+
+/* --- Animations --- */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake {
+    animation: shake 0.3s;
+    animation-iteration-count: 1;
+}
+
+.floating-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+    pointer-events: none;
+    z-index: 200;
+    animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -100%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -200%) scale(1); }
+}
+
+@keyframes popEffect {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.3); filter: brightness(1.5); }
+    100% { transform: scale(0); opacity: 0; filter: brightness(2); }
+}
+
+.block-pop {
+    animation: popEffect 0.25s ease-out forwards !important;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+@keyframes flashWhite {
+    0% { filter: brightness(1) sepia(0) hue-rotate(0deg); }
+    30% { filter: brightness(1.5) sepia(1) hue-rotate(270deg); background-color: #fff; }
+    100% { filter: brightness(1) sepia(0) hue-rotate(0deg); }
+}
+
+.flash-white {
+    animation: flashWhite 0.4s ease-out forwards;
+}
+
+@keyframes beamExplodeH {
+    0% { transform: scaleX(0); opacity: 1; }
+    30% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+}
+
+.prop-line-h {
+    animation: beamExplodeH 0.4s ease-out forwards;
+    transform-origin: left;
+}
+
+@keyframes beamExplodeV {
+    0% { transform: scaleY(0); opacity: 1; }
+    30% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+}
+
+.prop-line-v {
+    animation: beamExplodeV 0.4s ease-out forwards;
+    transform-origin: top;
+}
+
+
+@keyframes crossExplode {
+    0% { transform: scale(0) rotate(45deg); opacity: 1; }
+    50% { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 0; }
+}
+
+.prop-cross {
+    animation: crossExplode 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes spinBlackHole {
+    0% { transform: rotate(0deg) scale(0.9); }
+    100% { transform: rotate(360deg) scale(1.1); }
+}
+
+.black-hole-icon {
+    font-size: 26px;
+    animation: spinBlackHole 2s linear infinite alternate;
+    text-shadow: 0 0 10px #9b59b6, 0 0 20px #8e44ad;
+}
+
+/* --- Avatar Combat Animations --- */
+.anim-attack-right {
+    animation: dash-right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.anim-attack-left {
+    animation: dash-left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.anim-damage {
+    animation: damage-shake 0.3s ease-in-out forwards !important;
+    filter: drop-shadow(0 0 15px rgba(231, 76, 60, 0.8)) brightness(0.7) sepia(1) hue-rotate(-50deg) saturate(3) !important;
+}
+
+@keyframes dash-right {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(40px) scale(1.1); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes dash-left {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(-40px) scale(1.1); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes damage-shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-12px); }
+    50% { transform: translateX(12px); }
+    75% { transform: translateX(-6px); }
+    100% { transform: translateX(0); }
+}
+
+/* --- Block Hint Animations --- */
+.hint-active {
+    animation: hint-pulse 1s infinite alternate ease-in-out !important;
+    z-index: 5;
+}
+
+@keyframes hint-pulse {
+    0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px transparent); }
+    100% { transform: scale(1.1); filter: brightness(1.3) drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)); }
+}
+
+/* --- Projectile Animations --- */
+.projectile {
+    position: fixed;
+    z-index: 1000;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.5s ease-in;
+    transform-origin: center;
+    margin-left: -15px;
+    margin-top: -15px;
+}
+
+/* --- Intro Comic Overlay --- */
+#intro-comic {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #111;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #fff;
+    overflow-y: auto;
+    transition: opacity 1s ease-out;
+}
+#intro-comic.hidden {
+    display: none;
+    opacity: 0;
+}
+.comic-panel {
+    background: #222;
+    border: 3px solid #555;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fade-in-up 0.8s forwards;
+}
+.comic-panel.hidden {
+    display: none;
+}
+.comic-art {
+    font-size: 60px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+}
+.comic-art.fire-eyes {
+    animation: fire-pulse 1s infinite alternate;
+}
+.comic-text {
+    font-size: 18px;
+    line-height: 1.5;
+    color: #eee;
+}
+.comic-text.monologue p {
+    margin-bottom: 10px;
+    font-style: italic;
+    color: #ccc;
+}
+#next-comic-btn {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+    transition: all 0.2s;
+    margin-top: 20px;
+}
+#next-comic-btn:hover {
+    transform: scale(1.05);
+}
+@keyframes fade-in-up {
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fire-pulse {
+    from { text-shadow: 0 0 10px red; }
+    to { text-shadow: 0 0 30px orange; }
+}
