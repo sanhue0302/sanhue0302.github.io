@@ -123,7 +123,7 @@ class DialogManager {
         const d = this.dialogues[this.currentIndex];
         this.avatar.innerText = d.avatar;
         this.name.innerText = d.name;
-        this.text.innerText = d.text;
+        this.text.innerHTML = d.text;
     }
 
     next() {
@@ -338,6 +338,7 @@ class MatchEngine {
         if (pt === 1 && allowed.length > 4) {
             allowed.pop();
         }
+        this.allowedBlockKeys = allowed; // Store actual keys for tutorial checking
         this.allowedBlockTypes = allowed.map(key => BLOCK_TYPES[key]);
         
         
@@ -807,6 +808,24 @@ class MatchEngine {
             
             const isLine = (p) => p === 'line_h' || p === 'line_v';
             
+            // Check for newly discovered combo tutorial
+            let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+            let seenProps = saveObj.seenProps || [];
+            if (!seenProps.includes('combo')) {
+                seenProps.push('combo');
+                saveObj.seenProps = seenProps;
+                localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+                
+                const info = PROP_TUTORIALS['combo'];
+                await new Promise(resolve => {
+                    this.gameState.dialogManager.show([{
+                        name: "系統提示",
+                        avatar: "⚠️",
+                        text: `<div class='tutorial-box'><div class='tutorial-block-demo' style='background: ${info.color}; font-size: 20px;'><i class='fa-solid ${info.icon}'></i></div><div class='tutorial-desc'><strong>極密操作：${info.name}</strong><br>${info.desc}</div></div>`
+                    }], resolve);
+                });
+            }
+            
             if (isLine(p1) && isLine(p2)) {
                 // 光束 + 光束 => 十字範圍 (整排 + 整列)
                 this.playPropAnimation(r1, c1, 'line_h', '#f1c40f');
@@ -988,6 +1007,15 @@ class MatchEngine {
     async processMatches(matchGroups, swapR, swapC, colorBombColor = null, colorBombCell = null) {
         try {
             this.isProcessing = true;
+            // Safety timeout: auto-reset isProcessing after 15s to prevent permanent lock
+            if (this._safetyTimer) clearTimeout(this._safetyTimer);
+            this._safetyTimer = setTimeout(() => {
+                if (this.isProcessing) {
+                    console.warn('Safety: isProcessing stuck, force resetting');
+                    this.isProcessing = false;
+                    this.resetHintTimer();
+                }
+            }, 15000);
             this.comboCounter++;
             
             if (this.comboCounter > 1) {
@@ -1026,6 +1054,7 @@ class MatchEngine {
                 }
             }
 
+            let newlyDiscoveredProps = new Set();
             matchGroups.forEach(group => {
                 let centerStr;
                 
@@ -1069,6 +1098,10 @@ class MatchEngine {
                         if (r === cr && c !== cc) isHoriz = true;
                     });
                     spawnProp = isHoriz ? 'line_v' : 'line_h'; 
+                }
+                
+                if (spawnProp) {
+                    newlyDiscoveredProps.add(spawnProp);
                 }
                 
                 group.cells.forEach(c => {
@@ -1191,6 +1224,38 @@ class MatchEngine {
                 }
             });
 
+            // Show dynamic tutorials for newly discovered props
+            if (newlyDiscoveredProps.size > 0) {
+                let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+                let seenProps = saveObj.seenProps || [];
+                let propsToShow = [];
+                
+                newlyDiscoveredProps.forEach(p => {
+                    if (!seenProps.includes(p)) {
+                        propsToShow.push(p);
+                        seenProps.push(p);
+                    }
+                });
+
+                if (propsToShow.length > 0) {
+                    saveObj.seenProps = seenProps;
+                    localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+                    
+                    const dialogues = propsToShow.map(p => {
+                        const info = PROP_TUTORIALS[p];
+                        return {
+                            name: "系統提示",
+                            avatar: "⚠️",
+                            text: `<div class='tutorial-box'><div class='tutorial-block-demo' style='background: ${info.color}; font-size: 20px;'><i class='fa-solid ${info.icon}'></i></div><div class='tutorial-desc'><strong>特殊合成：${info.name}</strong><br>${info.desc}</div></div>`
+                        };
+                    });
+                    
+                    await new Promise(resolve => {
+                        this.gameState.dialogManager.show(dialogues, resolve);
+                    });
+                }
+            }
+
             if (totalDamage > 0) {
                 this.gameState.applyDamage(totalDamage * multiplier);
             }
@@ -1230,6 +1295,7 @@ class MatchEngine {
             alert("Oops! 發生了錯誤：\n" + error.message);
         } finally {
             this.isProcessing = false;
+            if (this._safetyTimer) clearTimeout(this._safetyTimer);
             this.resetHintTimer();
         }
     }
@@ -1446,8 +1512,14 @@ class MatchEngine {
         }
 
         if (!validShuffleFound) {
+            let fillAttempts = 0;
             do {
                 this.fillRandomTypesWithoutMatches();
+                fillAttempts++;
+                if (fillAttempts > 200) {
+                    console.warn('shuffleBoard: 無法產生有效盤面，強制繼續');
+                    break;
+                }
             } while (!this.hasPossibleMoves());
         }
         
@@ -1681,6 +1753,13 @@ class MatchEngine {
         }
     }
 
+    destroy() {
+        if (this.hintTimer) {
+            clearTimeout(this.hintTimer);
+            this.hintTimer = null;
+        }
+    }
+
     getRandomType() {
         if (!this.spawnPool) {
             this.spawnPool = [];
@@ -1698,13 +1777,69 @@ class MatchEngine {
 }
 
 const audioManager = new AudioManager();
-const dialogManager = new DialogManager(); 
+const dialogManager = new DialogManager();
 let currentEngine = null;
 
+// Tutorial definitions for each block type (beyond the starting MAIL & PPT)
+const BLOCK_TUTORIALS = {
+    TEA:   { name: '續命咖啡', color: 'linear-gradient(135deg, #fd79a8, #e84393)', icon: 'fa-mug-hot',       desc: '消除它不僅能造成傷害，還能為您回復 5 點血量！' },
+    PHONE: { name: '催命電話', color: 'linear-gradient(135deg, #fab1a0, #e17055)', icon: 'fa-phone',         desc: '消除它能造成傷害，並有機率打斷敵人的動作！' },
+    KPI:   { name: '績效考核', color: 'linear-gradient(135deg, #55efc4, #00b894)', icon: 'fa-bullseye',      desc: '基礎傷害為 0，但能大幅削減 Boss 的防禦狀態！' },
+    FILE:  { name: '黑歷史檔案', color: 'linear-gradient(135deg, #a29bfe, #6c5ce7)', icon: 'fa-folder-open',   desc: '挖出黑歷史！造成大量的直接傷害！' },
+    CLOCK: { name: '摸魚時鐘', color: 'linear-gradient(135deg, #81ecec, #00cec9)', icon: 'fa-clock',         desc: '造成傷害並強制拖延 Boss 的出手時間！' },
+    MONEY: { name: '年終獎金', color: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)', icon: 'fa-sack-dollar',   desc: '發錢啦！給予極高的爆發傷害與大幅回血！' }
+};
+
+const PROP_TUTORIALS = {
+    'line_h': { name: '橫向貫穿光束', color: '#f1c40f', icon: 'fa-arrows-left-right', desc: '將它與任意方塊交換，會瞬間清除整列方塊！' },
+    'line_v': { name: '縱向貫穿光束', color: '#f1c40f', icon: 'fa-arrows-up-down', desc: '將它與任意方塊交換，會瞬間清除整行方塊！' },
+    'cross':  { name: '十字爆破', color: '#e74c3c', icon: 'fa-arrows-to-circle', desc: '將它與任意方塊交換，會引發周圍十字範圍的爆炸！' },
+    'color':  { name: '黑洞', color: '#9b59b6', icon: 'fa-circle-notch spinBlackHole', desc: '將它與任意方塊交換，會將畫面上所有同種方塊吸入黑洞中摧毀！' },
+    'combo':  { name: '道具連鎖', color: '#f39c12', icon: 'fa-bolt', desc: '將兩個特殊道具互相交換，會引發超大範圍的毀滅性連鎖反應！' }
+};
+
+function buildTutorialHtml(key) {
+    const t = BLOCK_TUTORIALS[key];
+    if (!t) return '';
+    return `<div class='tutorial-box'><div class='tutorial-block-demo' style='background: ${t.color};'><i class='fa-solid ${t.icon}'></i></div><div class='tutorial-desc'><strong>新方塊解鎖：${t.name}</strong><br>${t.desc}</div></div>`;
+}
+
 function startGame(levelData) {
-    dialogManager.show(levelData.dialogues.start, () => {
+    // Compute actual allowed blocks (same logic as MatchEngine constructor)
+    let actualBlocks = [...levelData.allowedBlocks];
+    let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+    const pt = saveObj.playthrough || 1;
+    if (pt === 1 && actualBlocks.length > 4) {
+        actualBlocks.pop();
+    }
+
+    // Check which blocks are new (not yet seen by this player)
+    const seenTutorials = saveObj.seenTutorials || ['MAIL', 'PPT'];
+    const newBlocks = actualBlocks.filter(k => !seenTutorials.includes(k));
+
+    // Build dialogue list: original dialogues + dynamic tutorials
+    let dialogues = [...levelData.dialogues.start];
+    if (newBlocks.length > 0) {
+        // Append tutorial HTML to the last dialogue entry's text
+        const tutorialHtml = newBlocks.map(k => buildTutorialHtml(k)).join('');
+        dialogues = dialogues.map((d, i) => {
+            if (i === dialogues.length - 1) {
+                return { ...d, text: d.text + tutorialHtml };
+            }
+            return d;
+        });
+
+        // Mark these blocks as seen
+        saveObj.seenTutorials = [...seenTutorials, ...newBlocks];
+        localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+    }
+
+    dialogManager.show(dialogues, () => {
         if (currentEngine) {
             window.removeEventListener('resize', currentEngine.resizeHandler);
+            if (typeof currentEngine.destroy === 'function') {
+                currentEngine.destroy();
+            }
         }
 
         const gameState = new GameState(levelData, audioManager);
@@ -1722,14 +1857,20 @@ function startGame(levelData) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const introSeen = localStorage.getItem('office_worker_intro_seen');
+    let saveObj = {};
+    try {
+        const saveRaw = localStorage.getItem('office_worker_save');
+        if (saveRaw) saveObj = JSON.parse(saveRaw);
+    } catch (e) {
+        console.error("讀取存檔失敗", e);
+    }
+    
+    const introSeen = saveObj.introSeen === true;
     const introComic = document.getElementById('intro-comic');
     const appContainer = document.getElementById('game-container');
     
     if (!introSeen && introComic) {
-        introComic.classList.remove('hidden');
-        if (appContainer) appContainer.style.display = 'none';
-        
+        // game-container and intro-comic visibility is handled by index.html script initially
         let currentPanel = 1;
         const nextBtn = document.getElementById('next-comic-btn');
         if (nextBtn) {
@@ -1740,12 +1881,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentPanel++;
                 
                 if (currentPanel > 4) {
-                    localStorage.setItem('office_worker_intro_seen', 'true');
+                    // Save to JSON
+                    saveObj.introSeen = true;
+                    localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+                    
                     introComic.style.opacity = '0';
                     setTimeout(() => {
                         introComic.classList.add('hidden');
-                        if (appContainer) appContainer.style.display = '';
-                        initGame();
+                        introComic.classList.add('initial-hidden');
+                        if (appContainer) appContainer.classList.remove('initial-hidden');
+                        initGame(saveObj);
                     }, 1000);
                 } else {
                     const next = document.getElementById(`panel-${currentPanel}`);
@@ -1757,27 +1902,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         } else {
-            initGame();
+            initGame(saveObj);
         }
     } else {
-        initGame();
+        initGame(saveObj);
     }
 
-    function initGame() {
+    function initGame(saveData) {
         let startLevel = LEVELS[0];
-        try {
-            const save = localStorage.getItem('office_worker_save');
-            if (save) {
-                const data = JSON.parse(save);
-                const savedLevel = LEVELS.find(l => l.id === data.currentLevelId && !l.isTest);
-                if (savedLevel) {
-                    startLevel = savedLevel;
-                }
+        if (saveData && saveData.currentLevelId) {
+            const savedLevel = LEVELS.find(l => l.id === saveData.currentLevelId && !l.isTest);
+            if (savedLevel) {
+                startLevel = savedLevel;
             }
-        } catch (e) {
-            console.error("讀取存檔失敗", e);
         }
-        
         startGame(startLevel);
     }
 });

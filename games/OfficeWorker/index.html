@@ -7,10 +7,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .initial-hidden { display: none !important; }
+    </style>
+    <script>
+        // Check save immediately to prevent FOUC (flash of unstyled content)
+        (function() {
+            let introSeen = false;
+            try {
+                const saveRaw = localStorage.getItem('office_worker_save');
+                if (saveRaw) {
+                    const saveObj = JSON.parse(saveRaw);
+                    if (saveObj.introSeen) introSeen = true;
+                }
+            } catch (e) {}
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (introSeen) {
+                    document.getElementById('game-container').classList.remove('initial-hidden');
+                } else {
+                    document.getElementById('intro-comic').classList.remove('initial-hidden');
+                }
+            });
+        })();
+    </script>
 </head>
 <body>
     <!-- 開場故事漫畫風遮罩 -->
-    <div id="intro-comic" class="hidden">
+    <div id="intro-comic" class="initial-hidden">
         <div class="comic-panel" id="panel-1">
             <div class="comic-art">🏢⛈️</div>
             <div class="comic-text">陰暗、下著暴雨的都市叢林。<br>高聳商業大廈頂樓巨大的企業 Logo 閃爍著冰冷的光芒。</div>
@@ -36,7 +60,7 @@
         <button id="next-comic-btn">繼續 <i class="fa-solid fa-caret-right"></i></button>
     </div>
 
-    <div id="game-container">
+    <div id="game-container" class="initial-hidden">
     <!-- Top Area: Combat UI (Street Fighter Style) -->
     <div id="combat-ui">
         <!-- Optional: level title overlay -->
@@ -79,7 +103,6 @@
         <!-- Grid cells will be generated here by JS -->
     </div>
 
-    <!-- Bottom/Overlay Area: Dialogue/Story -->
     <div id="dialogue-overlay" class="hidden">
         <div class="dialogue-box">
             <div id="dialogue-avatar" class="dialogue-avatar">👨‍💼</div>
@@ -87,6 +110,7 @@
                 <div id="dialogue-name" class="dialogue-name">前輩</div>
                 <div id="dialogue-text" class="dialogue-text">小萌新，去把這份 500 頁的報告印出來！</div>
             </div>
+            <div class="dialogue-prompt">點擊繼續 <i class="fa-solid fa-caret-down"></i></div>
         </div>
     </div>
 </div>
