@@ -42,6 +42,20 @@ body, html {
     transition: background 0.5s ease-in-out;
 }
 
+.level-title {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 8px;
+    margin-top: -2px;
+    z-index: 10;
+    position: relative;
+    letter-spacing: 1px;
+}
+
 .sf-header {
     display: flex;
     justify-content: center;
