@@ -294,52 +294,108 @@ body, html {
 
 .dialogue-box {
     background: #ffffff;
-    padding: 15px;
-    padding-bottom: 25px; /* Leave space for the prompt */
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
+    margin: 15px 15px 30px 15px;
+    padding: 20px;
+    padding-bottom: 30px;
+    border: 4px solid #000;
+    border-radius: 12px;
     display: flex;
     gap: 15px;
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+    box-shadow: 6px 6px 0px #000;
     cursor: pointer;
     position: relative;
+    animation: comicPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes comicPop {
+    0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Speech bubble tail */
+.dialogue-box::after {
+    content: '';
+    position: absolute;
+    bottom: -24px;
+    left: 45px;
+    width: 0;
+    height: 0;
+    border-top: 24px solid #000;
+    border-left: 20px solid transparent;
+    border-right: 0px solid transparent;
+}
+.dialogue-box::before {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 48px;
+    width: 0;
+    height: 0;
+    border-top: 17px solid #fff;
+    border-left: 14px solid transparent;
+    border-right: 0px solid transparent;
+    z-index: 1;
 }
 
 .dialogue-prompt {
     position: absolute;
     bottom: 8px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    font-size: 12px;
-    color: #7f8fa6;
-    font-weight: bold;
+    right: 15px;
+    text-align: right;
+    font-size: 14px;
+    color: #000;
+    font-weight: 900;
     animation: blinkPrompt 1.5s infinite;
 }
 
 @keyframes blinkPrompt {
-    0%, 100% { opacity: 1; transform: translateY(0); }
-    50% { opacity: 0.3; transform: translateY(2px); }
+    0%, 100% { opacity: 1; transform: translateX(0); }
+    50% { opacity: 1; transform: translateX(5px); }
 }
 
 .dialogue-avatar {
-    font-size: 50px;
+    font-size: 45px;
+    background: #f1f2f6;
+    border: 3px solid #000;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 3px 3px 0 #000;
+    flex-shrink: 0;
+    margin-top: 5px;
 }
 
 .dialogue-content {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .dialogue-name {
-    font-weight: bold;
-    color: #0097e6;
-    margin-bottom: 5px;
+    font-weight: 900;
+    color: #000;
+    background: #f1c40f;
+    padding: 2px 10px;
+    border: 3px solid #000;
+    border-radius: 6px;
+    display: inline-block;
+    align-self: flex-start;
+    margin-bottom: 8px;
+    margin-top: -35px; /* Pull it up to overlap the border */
+    position: relative;
+    box-shadow: 3px 3px 0 #000;
+    letter-spacing: 1px;
+    font-size: 14px;
 }
 
 .dialogue-text {
-    color: #2f3640;
-    line-height: 1.5;
+    color: #000;
+    line-height: 1.6;
     font-size: 16px;
+    font-weight: bold;
 }
 
 /* --- Animations --- */
@@ -520,14 +576,19 @@ body, html {
 #intro-comic {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #111;
+    /* Halftone dot comic background */
+    background-color: #f1c40f;
+    background-image: radial-gradient(#e67e22 15%, transparent 16%),
+                      radial-gradient(#e67e22 15%, transparent 16%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
     z-index: 9999;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 20px;
-    color: #fff;
+    color: #000;
     overflow-y: auto;
     transition: opacity 1s ease-out;
 }
@@ -536,17 +597,18 @@ body, html {
     opacity: 0;
 }
 .comic-panel {
-    background: #222;
-    border: 3px solid #555;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
+    background: #ffffff;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
     width: 100%;
     max-width: 500px;
     text-align: center;
+    box-shadow: 8px 8px 0px #000;
     opacity: 0;
-    transform: translateY(20px);
-    animation: fade-in-up 0.8s forwards;
+    transform: translateY(20px) scale(0.95);
+    animation: comic-panel-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 .comic-panel.hidden {
     display: none;
@@ -554,74 +616,87 @@ body, html {
 .comic-art {
     font-size: 60px;
     margin-bottom: 15px;
-    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+    filter: drop-shadow(4px 4px 0px #000);
 }
 .comic-art.fire-eyes {
     animation: fire-pulse 1s infinite alternate;
 }
 .comic-text {
     font-size: 18px;
-    line-height: 1.5;
-    color: #eee;
+    line-height: 1.6;
+    color: #000;
+    font-weight: 900;
 }
 .comic-text.monologue p {
     margin-bottom: 10px;
     font-style: italic;
-    color: #ccc;
+    color: #333;
+    background: #f1f2f6;
+    padding: 10px;
+    border-left: 5px solid #000;
 }
 #next-comic-btn {
     background: #ff4757;
     color: white;
-    border: none;
+    border: 4px solid #000;
     padding: 15px 30px;
     font-size: 20px;
-    border-radius: 30px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+    font-weight: 900;
+    box-shadow: 6px 6px 0px #000;
     transition: all 0.2s;
-    margin-top: 20px;
+    margin-top: 10px;
+    text-transform: uppercase;
 }
 #next-comic-btn:hover {
-    transform: scale(1.05);
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px #000;
 }
-@keyframes fade-in-up {
-    to { opacity: 1; transform: translateY(0); }
+#next-comic-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
+}
+@keyframes comic-panel-pop {
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes fire-pulse {
-    from { text-shadow: 0 0 10px red; }
-    to { text-shadow: 0 0 30px orange; }
+    from { filter: drop-shadow(4px 4px 0px #000) drop-shadow(0 0 10px red); }
+    to { filter: drop-shadow(4px 4px 0px #000) drop-shadow(0 0 30px orange); }
 }
 /* Tutorial Box embedded in dialogue */
 .tutorial-box {
     margin-top: 15px;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px dashed rgba(0, 0, 0, 0.2);
+    background: #fff;
+    border: 3px solid #000;
     border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 15px;
+    box-shadow: 4px 4px 0 #000;
 }
 
 .tutorial-block-demo {
     width: 50px;
     height: 50px;
-    border-radius: 12px;
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 24px;
     color: #fff;
-    box-shadow: inset 0 -3px 5px rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.5);
+    border: 3px solid #000;
+    box-shadow: 2px 2px 0 #000;
     flex-shrink: 0;
 }
 
 .tutorial-desc {
     font-size: 14px;
     line-height: 1.5;
-    color: #2f3640;
+    color: #000;
     text-shadow: none;
+    font-weight: bold;
 }
 .tutorial-desc strong {
     color: #e84118;
@@ -744,14 +819,17 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background-color: rgba(0, 0, 0, 0.8);
+    background-image: radial-gradient(rgba(0,0,0,0.95) 15%, transparent 16%),
+                      radial-gradient(rgba(0,0,0,0.95) 15%, transparent 16%);
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
     opacity: 1;
     transition: opacity 0.4s ease-out;
-    backdrop-filter: blur(4px);
 }
 
 #game-over-overlay.hidden {
@@ -760,62 +838,65 @@ body, html {
 }
 
 .game-over-box {
-    background: linear-gradient(145deg, #2c3e50, #34495e);
+    background: #ffffff;
     padding: 30px;
-    border-radius: 16px;
+    border-radius: 12px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 2px 5px rgba(255, 255, 255, 0.2);
-    border: 2px solid #e74c3c;
-    transform: scale(1);
+    box-shadow: 8px 8px 0px #000;
+    border: 4px solid #000;
+    transform: scale(1) rotate(-3deg);
     animation: gameOverPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     max-width: 80%;
 }
 
 @keyframes gameOverPop {
-    0% { transform: scale(0.5); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+    50% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-3deg); opacity: 1; }
 }
 
 .game-over-title {
     color: #e74c3c;
-    font-size: 28px;
+    font-size: 36px;
     font-weight: 900;
     margin: 0 0 10px 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 3px 3px 0px #000;
+    text-transform: uppercase;
 }
 
 .game-over-text {
-    color: #ecf0f1;
-    font-size: 16px;
+    color: #000;
+    font-size: 18px;
+    font-weight: 900;
     margin-bottom: 25px;
 }
 
 .restart-btn {
-    background: linear-gradient(135deg, #e67e22, #d35400);
-    color: #fff;
-    border: none;
-    padding: 12px 24px;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 8px;
+    background: #f1c40f;
+    color: #000;
+    border: 4px solid #000;
+    padding: 15px 30px;
+    font-size: 20px;
+    font-weight: 900;
+    border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+    box-shadow: 6px 6px 0px #000;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     margin: 0 auto;
+    text-transform: uppercase;
 }
 
 .restart-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-    filter: brightness(1.1);
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px #000;
 }
 
 .restart-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
 }
 
