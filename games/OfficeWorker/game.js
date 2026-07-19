@@ -167,8 +167,8 @@ class GameState {
     init() {
         let chapter = 1;
         const lvl = this.currentLevel.id;
-        if (lvl >= 74) chapter = 6;
-        else if (lvl >= 54) chapter = 5;
+        if (lvl >= 76) chapter = 6;
+        else if (lvl >= 56) chapter = 5;
         else if (lvl >= 36) chapter = 4;
         else if (lvl >= 21) chapter = 3;
         else if (lvl >= 9) chapter = 2;
@@ -2250,19 +2250,21 @@ function startGame(levelData) {
         localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
     }
 
-    dialogManager.show(dialogues, () => {
-        if (currentEngine) {
-            window.removeEventListener('resize', currentEngine.resizeHandler);
-            if (typeof currentEngine.destroy === 'function') {
-                currentEngine.destroy();
-            }
+    if (currentEngine) {
+        window.removeEventListener('resize', currentEngine.resizeHandler);
+        if (typeof currentEngine.destroy === 'function') {
+            currentEngine.destroy();
         }
+    }
 
-        const gameState = new GameState(levelData, audioManager);
-        gameState.dialogManager = dialogManager;
-        gameState.init();
-        
+    const gameState = new GameState(levelData, audioManager);
+    gameState.dialogManager = dialogManager;
+    gameState.init(); // This sets up the background and avatars instantly
+
+    dialogManager.show(dialogues, () => {
         currentEngine = new MatchEngine('grid-container', gameState, levelData, audioManager);
+        window.currentGameEngine = currentEngine; // Expose for UI hooks
+        
         currentEngine.resizeHandler = () => currentEngine.resize();
         window.addEventListener('resize', currentEngine.resizeHandler);
         currentEngine.init();
