@@ -136,8 +136,13 @@ class GameState {
     constructor(levelData, audioManager) {
         this.currentLevel = levelData;
         this.audio = audioManager;
-        this.playerHp = 100;
-        this.playerMaxHp = 100;
+        // 根據關卡進度動態提升血量上限 (每關 +5 HP)
+        // 若為測試關卡 (ID >= 90)，則以最後一關(85)來計算，約 520 HP
+        const effectiveLevel = levelData.id >= 90 ? 85 : levelData.id;
+        const maxHp = 100 + (effectiveLevel - 1) * 5;
+        
+        this.playerHp = maxHp;
+        this.playerMaxHp = maxHp;
         
         this.bossHp = levelData.bossHp; 
         this.bossMaxHp = levelData.bossHp;
