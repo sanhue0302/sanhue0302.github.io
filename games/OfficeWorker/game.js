@@ -137,17 +137,24 @@ class GameState {
         this.currentLevel = levelData;
         this.audio = audioManager;
         // 根據關卡進度動態提升血量上限 (每關 +5 HP)
-        // 若為測試關卡 (ID >= 90)，則以最後一關(85)來計算，約 520 HP
-        const effectiveLevel = levelData.id >= 90 ? 85 : levelData.id;
+        // 若為測試關卡 (ID >= 96)，則以最後一關(95)來計算，約 570 HP
+        const effectiveLevel = levelData.id >= 96 ? 95 : levelData.id;
         const maxHp = 100 + (effectiveLevel - 1) * 5;
         this.playerAtkMultiplier = 1 + (effectiveLevel - 1) * 0.25;
         
         this.playerHp = maxHp;
         this.playerMaxHp = maxHp;
         
-        this.bossHp = levelData.bossHp; 
-        this.bossMaxHp = levelData.bossHp;
-        this.bossAtk = levelData.bossAtk;
+        let saveObj = {};
+        try {
+            saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+        } catch (e) {}
+        const pt = saveObj.playthrough || 1;
+        const difficultyMultiplier = 1 + (pt - 1) * 0.5; // 每周目提升 50%
+        
+        this.bossHp = Math.ceil(levelData.bossHp * difficultyMultiplier); 
+        this.bossMaxHp = this.bossHp;
+        this.bossAtk = Math.ceil(levelData.bossAtk * difficultyMultiplier);
         this.bossTimer = levelData.bossMaxTimer;
         this.bossMaxTimer = levelData.bossMaxTimer;
         
@@ -193,7 +200,18 @@ class GameState {
         }
         
         const titleDom = document.getElementById('level-title');
-        if (titleDom) titleDom.innerText = this.currentLevel.title;
+        if (titleDom) {
+            let saveObj = {};
+            try {
+                saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+            } catch (e) {}
+            const pt = saveObj.playthrough || 1;
+            if (pt >= 2) {
+                titleDom.innerText = `[${pt}周目] ${this.currentLevel.title}`;
+            } else {
+                titleDom.innerText = this.currentLevel.title;
+            }
+        }
         
         const bossNameDom = document.getElementById('boss-name-display');
         if (bossNameDom) bossNameDom.innerText = this.currentLevel.bossName;
@@ -364,17 +382,56 @@ class GameState {
                         
                         let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
                         
-                        if (nextLevel) {
+                        if (nextLevel && !nextLevel.isTest) {
                             saveObj.currentLevelId = nextLevelId;
                             localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
                             startGame(nextLevel);
                         } else {
+                            // Show custom awakening overlay reusing the promotion UI
+                            const overlay = document.getElementById('promotion-overlay');
+                            const titleDom = document.getElementById('promotion-title');
+                            const badgeDom = document.getElementById('promotion-badge');
+                            const storyDom = document.getElementById('promotion-story');
+                            const nextBtn = document.getElementById('promotion-next-btn');
+
                             let pt = saveObj.playthrough || 1;
-                            saveObj.playthrough = pt + 1;
-                            saveObj.currentLevelId = 1;
-                            alert("恭喜！您已經打倒了最終 Boss 破關了！\n接下來將進入「二周目」，解鎖全部方塊種類，挑戰真正的地獄難度！");
-                            localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
-                            location.reload();
+                            const config = PLAYTHROUGH_TEXTS.getAwakeningText(pt + 1);
+                            titleDom.innerText = config.title;
+                            badgeDom.innerText = config.badge;
+                            storyDom.innerHTML = '';
+                            nextBtn.innerHTML = config.btnText;
+                            nextBtn.classList.add('hidden');
+                            
+                            overlay.classList.remove('hidden');
+
+                            const storyText = config.story;
+                            
+                            let charIndex = 0;
+                            const typeWriter = setInterval(() => {
+                                if (charIndex < storyText.length) {
+                                    const char = storyText.charAt(charIndex);
+                                    if (char === '\n') {
+                                        storyDom.innerHTML += '<br>';
+                                    } else {
+                                        storyDom.innerHTML += char;
+                                    }
+                                    charIndex++;
+                                } else {
+                                    clearInterval(typeWriter);
+                                    nextBtn.classList.remove('hidden');
+                                }
+                            }, 30);
+
+                            nextBtn.onclick = () => {
+                                clearInterval(typeWriter);
+                                overlay.classList.add('hidden');
+                                
+                                let pt = saveObj.playthrough || 1;
+                                saveObj.playthrough = pt + 1;
+                                saveObj.currentLevelId = 1;
+                                localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+                                location.reload();
+                            };
                         }
                     };
 
@@ -1773,21 +1830,22 @@ class MatchEngine {
         for (let r = 0; r < this.rows; r++) {
             for (let c = 0; c < this.cols; c++) {
                 if (!this.grid[r][c].isPlayable || !this.grid[r][c].type) continue;
+                if (this.grid[r][c].propType === 'obstacle_jam') continue; // 無法移動卡紙方塊
                 
-                // Color bomb is always movable if there's a playable block adjacent
+                // Color bomb is always movable if there's a playable block adjacent and it's not a paper jam
                 if (this.grid[r][c].propType === 'color') {
-                    if (c+1 < this.cols && this.grid[r][c+1].isPlayable) return {r1:r, c1:c, r2:r, c2:c+1};
-                    if (r+1 < this.rows && this.grid[r+1][c].isPlayable) return {r1:r, c1:c, r2:r+1, c2:c};
+                    if (c+1 < this.cols && this.grid[r][c+1].isPlayable && this.grid[r][c+1].propType !== 'obstacle_jam') return {r1:r, c1:c, r2:r, c2:c+1};
+                    if (r+1 < this.rows && this.grid[r+1][c].isPlayable && this.grid[r+1][c].propType !== 'obstacle_jam') return {r1:r, c1:c, r2:r+1, c2:c};
                 }
                 
-                if (c + 1 < this.cols && this.grid[r][c+1].isPlayable && this.grid[r][c+1].type) {
+                if (c + 1 < this.cols && this.grid[r][c+1].isPlayable && this.grid[r][c+1].type && this.grid[r][c+1].propType !== 'obstacle_jam') {
                     this.simulateSwap(r, c, r, c+1);
                     const matches = this.checkMatches();
                     this.simulateSwap(r, c, r, c+1); 
                     if (matches.length > 0) return {r1:r, c1:c, r2:r, c2:c+1};
                 }
                 
-                if (r + 1 < this.rows && this.grid[r+1][c].isPlayable && this.grid[r+1][c].type) {
+                if (r + 1 < this.rows && this.grid[r+1][c].isPlayable && this.grid[r+1][c].type && this.grid[r+1][c].propType !== 'obstacle_jam') {
                     this.simulateSwap(r, c, r+1, c);
                     const matches = this.checkMatches();
                     this.simulateSwap(r, c, r+1, c); 
@@ -2235,6 +2293,9 @@ function startGame(levelData) {
 
     // Build dialogue list: original dialogues + dynamic tutorials
     let dialogues = [...levelData.dialogues.start];
+    if (pt >= 2 && levelData.id === 1 && typeof PLAYTHROUGH_TEXTS !== 'undefined' && PLAYTHROUGH_TEXTS.ngPlusLevel1Dialogues) {
+        dialogues = [...PLAYTHROUGH_TEXTS.ngPlusLevel1Dialogues];
+    }
     if (newBlocks.length > 0) {
         // Append tutorial HTML to the last dialogue entry's text
         const tutorialHtml = newBlocks.map(k => buildTutorialHtml(k)).join('');
