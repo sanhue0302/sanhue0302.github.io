@@ -153,6 +153,15 @@ class GameState {
         
         this.bossArmorBreak = false; 
         this.dialogManager = null;
+
+        // 初始化部屬系統 (第三章 / 第21關以上解鎖)
+        this.subordinates = [];
+        if (effectiveLevel >= 21) {
+            this.subordinates = [
+                { id: 1, name: "Z世代新人", seed: "ZGen", color: 'MAIL', charge: 20, maxCharge: 40, ready: false, locked: 0, desc: "強力打擊" },
+                { id: 2, name: "資深組員", seed: "Senior", color: 'TEA', charge: 20, maxCharge: 40, ready: false, locked: 0, desc: "緊急救援" }
+            ];
+        }
     }
 
     init() {
@@ -171,7 +180,85 @@ class GameState {
         const combatUi = document.getElementById('combat-ui');
         // Removed dynamic background to let CSS office scene show
 
+        const subUi = document.getElementById('subordinates-ui');
+        if (this.subordinates.length > 0) {
+            if (subUi) subUi.classList.remove('hidden');
+            this.updateSubordinatesUI();
+        } else {
+            if (subUi) subUi.classList.add('hidden');
+        }
+
         this.updateUI();
+    }
+
+    updateSubordinatesUI() {
+        this.subordinates.forEach(sub => {
+            const wrapDom = document.getElementById(`sub-${sub.id}-wrap`);
+            const cdDom = document.getElementById(`sub-${sub.id}-cd`);
+            const readyDom = document.getElementById(`sub-${sub.id}-ready`);
+
+            if (wrapDom) {
+                const percentage = Math.min(100, (sub.charge / sub.maxCharge) * 100);
+                wrapDom.style.setProperty('--progress', `${percentage}%`);
+                if (sub.ready) {
+                    wrapDom.classList.add('ready');
+                    readyDom.classList.remove('hidden');
+                } else {
+                    wrapDom.classList.remove('ready');
+                    readyDom.classList.add('hidden');
+                }
+            }
+            if (cdDom) {
+                if (sub.locked > 0) {
+                    cdDom.classList.remove('hidden');
+                    cdDom.innerHTML = `<i class="fa-solid fa-lock"></i>`;
+                } else {
+                    cdDom.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    chargeSubordinates(blockTypeObj) {
+        if (this.subordinates.length === 0) return;
+        let updated = false;
+        this.subordinates.forEach(sub => {
+            if (sub.locked > 0) return;
+            if (BLOCK_TYPES[sub.color] === blockTypeObj && !sub.ready) {
+                sub.charge += 1;
+                if (sub.charge >= sub.maxCharge) {
+                    sub.charge = sub.maxCharge;
+                    sub.ready = true;
+                    this.showFloatingText('技能就緒!', '#f1c40f', document.getElementById(`sub-${sub.id}-wrap`));
+                    this.audio.playHeal(); // reuse sound
+                }
+                updated = true;
+            }
+        });
+        if (updated) this.updateSubordinatesUI();
+    }
+
+    useSubordinateSkill(id) {
+        if (this.bossHp <= 0 || this.playerHp <= 0) return;
+        const sub = this.subordinates.find(s => s.id === id);
+        if (!sub || !sub.ready || sub.locked > 0) return;
+
+        // Reset
+        sub.ready = false;
+        sub.charge = 0;
+        this.updateSubordinatesUI();
+
+        // Effect
+        if (id === 1) { // ZGen (Attack)
+            this.showFloatingText('新人爆發!', '#e74c3c', document.getElementById(`sub-${sub.id}`));
+            const dmg = 30 * this.playerAtkMultiplier;
+            this.applyDamage(dmg);
+        } else if (id === 2) { // Senior (Heal & Delay)
+            this.showFloatingText('老鳥救援!', '#2ed573', document.getElementById(`sub-${sub.id}`));
+            this.applyHeal(30);
+            this.bossTimer += 2;
+            this.updateUI();
+        }
     }
 
     updateUI() {
@@ -248,22 +335,59 @@ class GameState {
         if (this.bossHp <= 0 && this.dialogManager) {
             setTimeout(() => {
                 this.dialogManager.show(this.currentLevel.dialogues.win, () => {
-                    const nextLevelId = this.currentLevel.id + 1;
-                    const nextLevel = LEVELS.find(l => l.id === nextLevelId);
-                    
-                    let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
-                    
-                    if (nextLevel) {
-                        saveObj.currentLevelId = nextLevelId;
-                        localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
-                        startGame(nextLevel);
+                    const handleNextLevel = () => {
+                        const nextLevelId = this.currentLevel.id + 1;
+                        const nextLevel = LEVELS.find(l => l.id === nextLevelId);
+                        
+                        let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+                        
+                        if (nextLevel) {
+                            saveObj.currentLevelId = nextLevelId;
+                            localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+                            startGame(nextLevel);
+                        } else {
+                            let pt = saveObj.playthrough || 1;
+                            saveObj.playthrough = pt + 1;
+                            saveObj.currentLevelId = 1;
+                            alert("恭喜！您已經打倒了最終 Boss 破關了！\n接下來將進入「二周目」，解鎖全部方塊種類，挑戰真正的地獄難度！");
+                            localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
+                            location.reload();
+                        }
+                    };
+
+                    if (this.currentLevel.systemPostWin) {
+                        const overlay = document.getElementById('promotion-overlay');
+                        const titleDom = document.getElementById('promotion-title');
+                        const badgeDom = document.getElementById('promotion-badge');
+                        const storyDom = document.getElementById('promotion-story');
+                        const nextBtn = document.getElementById('promotion-next-btn');
+
+                        titleDom.innerText = this.currentLevel.systemPostWin.title;
+                        badgeDom.innerText = this.currentLevel.systemPostWin.badge;
+                        storyDom.innerText = '';
+                        nextBtn.classList.add('hidden');
+                        
+                        overlay.classList.remove('hidden');
+
+                        const storyText = this.currentLevel.systemPostWin.story;
+                        let charIndex = 0;
+                        const typeWriter = setInterval(() => {
+                            if (charIndex < storyText.length) {
+                                storyDom.innerText += storyText.charAt(charIndex);
+                                charIndex++;
+                            } else {
+                                clearInterval(typeWriter);
+                                nextBtn.classList.remove('hidden');
+                            }
+                        }, 50);
+
+                        nextBtn.onclick = () => {
+                            clearInterval(typeWriter);
+                            overlay.classList.add('hidden');
+                            handleNextLevel();
+                        };
                     } else {
-                        let pt = saveObj.playthrough || 1;
-                        saveObj.playthrough = pt + 1;
-                        saveObj.currentLevelId = 1;
-                        alert("恭喜！您已經打倒了最終 Boss 破關了！\n接下來將進入「二周目」，解鎖全部方塊種類，挑戰真正的地獄難度！");
-                        localStorage.setItem('office_worker_save', JSON.stringify(saveObj));
-                        location.reload();
+                        handleNextLevel();
                     }
                 });
             }, 1000);
@@ -334,6 +458,16 @@ class GameState {
     bossTurn() {
         if (this.bossHp <= 0) return;
 
+        // Reduce lock cooldown for subordinates
+        let updatedSub = false;
+        this.subordinates.forEach(sub => {
+            if (sub.locked > 0) {
+                sub.locked--;
+                updatedSub = true;
+            }
+        });
+        if (updatedSub) this.updateSubordinatesUI();
+
         this.bossTimer--;
         if (this.bossTimer <= 0) {
             this.playerHp = Math.max(0, this.playerHp - this.bossAtk);
@@ -367,6 +501,11 @@ class GameState {
                 document.getElementById('game-container').classList.remove('shake');
             }, 300);
 
+            // Boss 技能: 隨機鎖定部屬技能 (針對帶有特定 Boss 的關卡，簡單以機率或關卡判定)
+            if (this.currentLevel.id >= 21 && Math.random() < 0.25) { // 25% 機率鎖定技能
+                this.lockRandomSubordinate();
+            }
+
             if (this.playerHp <= 0) {
                 setTimeout(() => {
                     const gameOverOverlay = document.getElementById('game-over-overlay');
@@ -375,6 +514,19 @@ class GameState {
             }
         }
         this.updateUI();
+    }
+
+    lockRandomSubordinate() {
+        if (this.subordinates.length === 0) return;
+        const available = this.subordinates.filter(s => s.locked === 0);
+        if (available.length > 0) {
+            const target = available[Math.floor(Math.random() * available.length)];
+            target.locked = 3; 
+            target.ready = false;
+            target.charge = 0;
+            this.showFloatingText('技能封鎖!', '#8e44ad', document.getElementById(`sub-${target.id}`));
+            this.updateSubordinatesUI();
+        }
     }
 }
 
@@ -1280,6 +1432,7 @@ class MatchEngine {
                 if (!block || !block.type) return;
                 
                 this.spawnProjectile(r, c, block.type);
+                this.gameState.chargeSubordinates(block.type);
                 
                 if (['attack', 'heavy', 'poison'].includes(block.type.type)) {
                     totalDamage += block.type.dmg;

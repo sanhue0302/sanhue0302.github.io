@@ -900,3 +900,223 @@ body, html {
     box-shadow: 2px 2px 0px #000;
 }
 
+/* --- Promotion / Chapter Transition Overlay --- */
+#promotion-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#promotion-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.promotion-box {
+    background: #ffffff;
+    width: 85%;
+    max-width: 400px;
+    padding: 30px 20px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 8px 8px 0px #000;
+    animation: promoPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes promoPop {
+    0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.promotion-title {
+    color: #e74c3c;
+    font-size: 24px;
+    font-weight: 900;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 0px #000;
+    text-transform: uppercase;
+}
+
+.promotion-badge {
+    background: #f1c40f;
+    color: #000;
+    padding: 8px 16px;
+    font-size: 20px;
+    font-weight: 900;
+    border: 3px solid #000;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0px #000;
+    margin-bottom: 20px;
+}
+
+.promotion-story-container {
+    background: #f1f2f6;
+    border: 3px solid #000;
+    border-radius: 8px;
+    padding: 15px;
+    width: 90%;
+    min-height: 100px;
+    margin-bottom: 25px;
+    text-align: left;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.promotion-story {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.promotion-next-btn {
+    background: #ff4757;
+    color: #fff;
+    border: 4px solid #000;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 6px 6px 0px #000;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.promotion-next-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px #000;
+}
+
+.promotion-next-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+.promotion-next-btn.hidden {
+    display: none;
+}
+
+/* --- Subordinates UI --- */
+.player-character-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.subordinates-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: -10px; /* Pull it slightly into the player avatar */
+    z-index: 10;
+}
+
+.subordinates-container.hidden {
+    display: none;
+}
+
+.subordinate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45px;
+}
+
+.sub-avatar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    background: conic-gradient(#3498db var(--progress, 0%), #bdc3c7 0deg);
+    border-radius: 50%;
+    box-shadow: 1px 1px 0 #000;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.sub-img-container {
+    width: 36px;
+    height: 36px;
+    background: #f1f2f6;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+.sub-avatar-wrap:active {
+    transform: scale(0.9);
+}
+
+.sub-avatar-wrap.ready {
+    background: conic-gradient(#f1c40f var(--progress, 100%), #f39c12 0deg);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.8), 1px 1px 0 #000;
+    animation: sub-ready-pulse 1s infinite alternate;
+}
+
+@keyframes sub-ready-pulse {
+    0% { filter: brightness(1); transform: scale(1); }
+    100% { filter: brightness(1.3); transform: scale(1.05); }
+}
+
+.sub-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sub-cooldown-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 16px;
+}
+
+.sub-cooldown-overlay.hidden {
+    display: none;
+}
+
+.sub-ready-overlay {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e74c3c;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 1px 4px;
+    border-radius: 4px;
+    border: 1px solid #fff;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.sub-ready-overlay.hidden {
+    display: none;
+}
+
+.sub-name {
+    font-size: 10px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+    margin-top: 1px;
+    white-space: nowrap;
+}

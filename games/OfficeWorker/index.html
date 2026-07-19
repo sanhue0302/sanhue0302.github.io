@@ -94,7 +94,34 @@
         </div>
 
         <div class="sf-avatars">
-            <img src="https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=transparent" class="sf-avatar player-avatar" alt="Player">
+            <div class="player-character-group">
+                <img src="https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=transparent" class="sf-avatar player-avatar" alt="Player">
+                
+                <!-- Subordinates System UI -->
+                <div id="subordinates-ui" class="subordinates-container hidden">
+                    <div class="subordinate" id="sub-1">
+                        <div class="sub-avatar-wrap" id="sub-1-wrap" onclick="window.useSubordinateSkill(1)">
+                            <div class="sub-img-container">
+                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=ZGen&backgroundColor=transparent" class="sub-img">
+                                <div class="sub-cooldown-overlay hidden" id="sub-1-cd"><i class="fa-solid fa-lock"></i></div>
+                            </div>
+                            <div class="sub-ready-overlay hidden" id="sub-1-ready">READY</div>
+                        </div>
+                        <div class="sub-name" id="sub-1-name">Z世代新人</div>
+                    </div>
+                    <div class="subordinate" id="sub-2">
+                        <div class="sub-avatar-wrap" id="sub-2-wrap" onclick="window.useSubordinateSkill(2)">
+                            <div class="sub-img-container">
+                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Senior&backgroundColor=transparent" class="sub-img">
+                                <div class="sub-cooldown-overlay hidden" id="sub-2-cd"><i class="fa-solid fa-lock"></i></div>
+                            </div>
+                            <div class="sub-ready-overlay hidden" id="sub-2-ready">READY</div>
+                        </div>
+                        <div class="sub-name" id="sub-2-name">資深組員</div>
+                    </div>
+                </div>
+            </div>
+
             <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Boss&backgroundColor=transparent" class="sf-avatar boss-avatar" alt="Boss">
         </div>
     </div>
@@ -121,6 +148,20 @@
             <p class="game-over-text">你被擊敗了... 社畜的悲歌還未結束。</p>
             <button id="restart-btn" class="restart-btn">
                 <i class="fa-solid fa-rotate-right"></i> 重新開始
+            </button>
+        </div>
+    </div>
+
+    <!-- Promotion / Chapter Transition Overlay -->
+    <div id="promotion-overlay" class="hidden">
+        <div class="promotion-box">
+            <h2 id="promotion-title" class="promotion-title">【職位晉升通知】</h2>
+            <div id="promotion-badge" class="promotion-badge">🎖️ 正式組員</div>
+            <div class="promotion-story-container">
+                <div id="promotion-story" class="promotion-story"></div>
+            </div>
+            <button id="promotion-next-btn" class="promotion-next-btn hidden">
+                接受任命 <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
     </div>
