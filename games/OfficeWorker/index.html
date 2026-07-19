@@ -14,6 +14,7 @@
         // Check save immediately to prevent FOUC (flash of unstyled content)
         (function() {
             let introSeen = false;
+            let isTestMode = new URLSearchParams(window.location.search).has('test');
             try {
                 const saveRaw = localStorage.getItem('office_worker_save');
                 if (saveRaw) {
@@ -23,7 +24,7 @@
             } catch (e) {}
 
             document.addEventListener('DOMContentLoaded', () => {
-                if (introSeen) {
+                if (introSeen || isTestMode) {
                     document.getElementById('game-container').classList.remove('initial-hidden');
                 } else {
                     document.getElementById('intro-comic').classList.remove('initial-hidden');
@@ -111,6 +112,16 @@
                 <div id="dialogue-text" class="dialogue-text">小萌新，去把這份 500 頁的報告印出來！</div>
             </div>
             <div class="dialogue-prompt">點擊繼續 <i class="fa-solid fa-caret-down"></i></div>
+        </div>
+    </div>
+
+    <div id="game-over-overlay" class="hidden">
+        <div class="game-over-box">
+            <h2 class="game-over-title">精神崩潰！</h2>
+            <p class="game-over-text">你被擊敗了... 社畜的悲歌還未結束。</p>
+            <button id="restart-btn" class="restart-btn">
+                <i class="fa-solid fa-rotate-right"></i> 重新開始
+            </button>
         </div>
     </div>
 </div>

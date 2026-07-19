@@ -184,12 +184,33 @@ class GameState {
         const playerHpPercent = Math.max(0, (this.playerHp / this.playerMaxHp) * 100);
         playerBar.style.width = `${playerHpPercent}%`;
         playerText.innerText = `${Math.ceil(this.playerHp)} / ${this.playerMaxHp}`;
+
+        // 破甲狀態：主角頭像上方顯示標籤 + 角色發光效果
+        const playerAvatar = document.querySelector('.player-avatar');
+        let badge = document.getElementById('armor-break-badge');
+        if (this.bossArmorBreak) {
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'armor-break-badge';
+                badge.className = 'armor-break-badge';
+                badge.innerHTML = '<i class="fa-solid fa-bullseye"></i> 下次攻擊 ×2';
+                // 插入到 player avatar 的父容器中
+                if (playerAvatar && playerAvatar.parentElement) {
+                    playerAvatar.parentElement.style.position = 'relative';
+                    playerAvatar.parentElement.appendChild(badge);
+                }
+            }
+            if (playerAvatar) playerAvatar.classList.add('armor-break-active');
+        } else {
+            if (badge) badge.remove();
+            if (playerAvatar) playerAvatar.classList.remove('armor-break-active');
+        }
     }
 
     applyDamage(amount) {
         if (amount <= 0) return;
         if (this.bossArmorBreak) {
-            amount *= 1.5; 
+            amount *= 2; 
             this.bossArmorBreak = false; 
         }
         this.bossHp = Math.max(0, this.bossHp - amount);
@@ -253,27 +274,55 @@ class GameState {
     }
 
     showFloatingText(text, color, parentDom) {
-        if (!this.floatingTexts) this.floatingTexts = [];
-        const now = Date.now();
-        this.floatingTexts = this.floatingTexts.filter(t => now - t.time < 800);
-        
-        const sameParentCount = this.floatingTexts.filter(t => t.parent === parentDom).length;
-        const offset = sameParentCount * 40; 
-        
+        if (!this.floatingTextMap) this.floatingTextMap = new Map();
+
+        // 取得該區域的浮動文字佇列
+        if (!this.floatingTextMap.has(parentDom)) {
+            this.floatingTextMap.set(parentDom, []);
+        }
+        const queue = this.floatingTextMap.get(parentDom);
+
+        // 清除已被移除的 DOM 參照
+        for (let i = queue.length - 1; i >= 0; i--) {
+            if (!queue[i].dom || !queue[i].dom.parentNode) queue.splice(i, 1);
+        }
+
+        // 每個區域上限 4 個：超過時移除最舊的
+        while (queue.length >= 4) {
+            const oldest = queue.shift();
+            if (oldest.dom && oldest.dom.parentNode) {
+                oldest.dom.style.transition = 'opacity 0.2s';
+                oldest.dom.style.opacity = '0';
+                setTimeout(() => { if (oldest.dom.parentNode) oldest.dom.remove(); }, 200);
+            }
+        }
+
+        // 將該區域現有文字往上推
+        queue.forEach(t => {
+            if (t.dom && t.dom.parentNode) {
+                t.offsetIndex++;
+                t.dom.style.transform = `translate(-50%, calc(-50% - ${t.offsetIndex * 36}px))`;
+            }
+        });
+
         const floating = document.createElement('div');
         floating.innerText = text;
         floating.className = 'floating-text';
         floating.style.color = color;
         floating.style.whiteSpace = 'nowrap';
-        if (offset > 0) {
-            floating.style.marginTop = `-${offset}px`;
-        }
-        
+
         parentDom.style.position = 'relative';
         parentDom.appendChild(floating);
-        
-        this.floatingTexts.push({ time: now, parent: parentDom });
-        setTimeout(() => { if (floating.parentNode) floating.remove() }, 1000);
+
+        const entry = { dom: floating, offsetIndex: 0 };
+        queue.push(entry);
+
+        // 2.5 秒後自動移除
+        setTimeout(() => {
+            if (floating.parentNode) floating.remove();
+            const idx = queue.indexOf(entry);
+            if (idx !== -1) queue.splice(idx, 1);
+        }, 2500);
     }
 
     bossTurn() {
@@ -313,7 +362,10 @@ class GameState {
             }, 300);
 
             if (this.playerHp <= 0) {
-                setTimeout(() => alert("精神崩潰！你被擊敗了... 請重新整理再試一次。"), 100);
+                setTimeout(() => {
+                    const gameOverOverlay = document.getElementById('game-over-overlay');
+                    if (gameOverOverlay) gameOverOverlay.classList.remove('hidden');
+                }, 500);
             }
         }
         this.updateUI();
@@ -345,6 +397,7 @@ class MatchEngine {
         this.grid = [];
         this.isProcessing = false;
         this.comboCounter = 0;
+        this.stunThisTurn = 0; // PHONE 暈眩：同一回合（含連鎖）最多 +5
         
         this.dragStartNode = null;
         this.startX = 0;
@@ -369,12 +422,12 @@ class MatchEngine {
                     cell.addEventListener('pointerdown', (e) => this.onPointerDown(e, r, c));
                     this.container.appendChild(cell);
 
-                    this.grid[r][c] = { dom: cell, type: null, propType: null, blockDom: null, isPlayable: true };
+                    this.grid[r][c] = { dom: cell, type: null, propType: null, blockDom: null, isPlayable: true, bombTimer: 0 };
                 } else {
                     const cell = document.createElement('div');
                     cell.className = 'grid-cell-empty';
                     this.container.appendChild(cell);
-                    this.grid[r][c] = { dom: cell, type: null, propType: null, blockDom: null, isPlayable: false };
+                    this.grid[r][c] = { dom: cell, type: null, propType: null, blockDom: null, isPlayable: false, bombTimer: 0 };
                 }
             }
         }
@@ -429,14 +482,22 @@ class MatchEngine {
     createBlockDom(r, c, type, propType) {
         const block = document.createElement('div');
         block.className = 'block';
-        this.updateBlockVisual(block, type, propType);
+        this.updateBlockVisual(block, type, propType, this.grid[r][c].bombTimer);
         this.grid[r][c].blockDom = block;
         this.grid[r][c].dom.appendChild(block);
     }
 
-    updateBlockVisual(blockDom, type, propType) {
+    updateBlockVisual(blockDom, type, propType, bombTimer = 0) {
         if (!blockDom) return;
-        if (propType === 'color') {
+        if (propType === 'obstacle_jam') {
+            blockDom.innerHTML = '<i class="fa-solid fa-print"></i>';
+            blockDom.style.background = 'repeating-linear-gradient(45deg, #7f8c8d, #7f8c8d 10px, #95a5a6 10px, #95a5a6 20px)';
+            blockDom.style.boxShadow = 'inset 0 2px 5px rgba(0,0,0,0.5)';
+            blockDom.style.border = '2px solid #2c3e50';
+            blockDom.style.color = '#fff';
+            blockDom.style.textShadow = '0 1px 2px #000';
+            blockDom.title = "卡紙方塊：無法移動，必須在相鄰位置消除方塊來破壞。";
+        } else if (propType === 'color') {
             blockDom.innerHTML = '<i class="fa-solid fa-hurricane black-hole-icon"></i>';
             blockDom.style.background = 'linear-gradient(135deg, #2c3e50, #000000)';
             blockDom.style.boxShadow = 'inset 0 2px 10px rgba(155, 89, 182, 0.8), 0 5px 15px rgba(0,0,0,0.8), 0 0 20px rgba(155, 89, 182, 0.6)';
@@ -454,6 +515,7 @@ class MatchEngine {
                 blockDom.style.boxShadow = 'none';
                 blockDom.style.border = 'none';
             }
+            if (bombTimer > 0) blockDom.innerHTML += `<div class="bomb-timer-badge">${bombTimer}</div>`;
             if (propType === 'line_h') blockDom.innerHTML += '<div class="prop-overlay"><i class="fa-solid fa-arrows-left-right"></i></div>';
             else if (propType === 'line_v') blockDom.innerHTML += '<div class="prop-overlay"><i class="fa-solid fa-arrows-up-down"></i></div>';
             else if (propType === 'cross') blockDom.innerHTML += '<div class="prop-overlay cross"><i class="fa-solid fa-certificate"></i></div>';
@@ -462,6 +524,8 @@ class MatchEngine {
 
     onPointerDown(e, r, c) {
         if (this.isProcessing || !this.grid[r][c].isPlayable) return;
+        if (this.grid[r][c].propType === 'obstacle_jam') return; // Cannot drag jam
+        if (this.gameState && this.gameState.playerHp <= 0) return; // Cannot drag when dead
         
         this.resetHintTimer();
 
@@ -487,6 +551,14 @@ class MatchEngine {
             const dy = moveEvent.clientY - this.startY;
             
             const cellWidth = this.grid[r][c].dom.offsetWidth;
+            
+            // Auto release if dragged far enough
+            const autoReleaseThreshold = cellWidth * 0.5;
+            if (Math.abs(dx) >= autoReleaseThreshold || Math.abs(dy) >= autoReleaseThreshold) {
+                onPointerUp(moveEvent);
+                return;
+            }
+            
             const gap = 5; 
             const limit = cellWidth + gap; 
             
@@ -524,7 +596,7 @@ class MatchEngine {
             if ((targetR !== r || targetC !== c) && 
                 targetR >= 0 && targetR < this.rows && 
                 targetC >= 0 && targetC < this.cols &&
-                this.grid[targetR][targetC].isPlayable) {
+                this.grid[targetR][targetC].isPlayable && this.grid[targetR][targetC].propType !== 'obstacle_jam') {
                 
                 const targetBlock = this.grid[targetR][targetC];
                 if (targetBlock && targetBlock.blockDom) {
@@ -564,13 +636,13 @@ class MatchEngine {
                     if (dy > 0) targetR++; 
                     else targetR--;        
                 }
-                if (targetR >= 0 && targetR < this.rows && targetC >= 0 && targetC < this.cols && this.grid[targetR][targetC].isPlayable) {
+                if (targetR >= 0 && targetR < this.rows && targetC >= 0 && targetC < this.cols && this.grid[targetR][targetC].isPlayable && this.grid[targetR][targetC].propType !== 'obstacle_jam') {
                     isSwap = true;
                 }
             }
             
             if (isSwap) {
-                if (blockDom) blockDom.style.zIndex = '1';
+                if (blockDom) blockDom.style.zIndex = '';
                 
                 const b1 = this.grid[sr][sc];
                 const b2 = this.grid[targetR][targetC];
@@ -597,18 +669,26 @@ class MatchEngine {
                 this.swap(sr, sc, targetR, targetC).then(async () => {
                     if (isPropCombo) {
                         this.comboCounter = 0;
+                        this.stunThisTurn = 0;
+                        this.removeComoBadge();
                         await this.processPropCombo(targetR, targetC, sr, sc, p1, p2, b1.type, b2.type);
                         if (this.gameState.bossHp > 0 && this.gameState.playerHp > 0) {
+                            this.tickBombs();
                             this.gameState.bossTurn();
+                            this.triggerBossHellModeSkills();
                         }
                     } else {
                         const matchGroups = this.checkMatches();
                         if (isColorBombSwap || matchGroups.length > 0) {
-                            this.comboCounter = 0; 
+                            this.comboCounter = 0;
+                            this.stunThisTurn = 0;
+                            this.removeComoBadge();
                             await this.processMatches(matchGroups, targetR, targetC, isColorBombSwap ? colorBombColor : null, isColorBombSwap ? colorBombCell : null);
                             
                             if (this.gameState.bossHp > 0 && this.gameState.playerHp > 0) {
+                                this.tickBombs();
                                 this.gameState.bossTurn();
+                                this.triggerBossHellModeSkills();
                             }
                         } else {
                             await this.swap(sr, sc, targetR, targetC);
@@ -619,7 +699,7 @@ class MatchEngine {
                 if (blockDom) {
                     blockDom.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                     blockDom.style.transform = 'translate(0px, 0px) scale(1)';
-                    blockDom.style.zIndex = '1';
+                    blockDom.style.zIndex = '';
                 }
                 if (currentTargetNode) {
                     const prevNode = this.grid[currentTargetNode.r][currentTargetNode.c];
@@ -639,7 +719,7 @@ class MatchEngine {
 
             if (blockDom) {
                 blockDom.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                blockDom.style.zIndex = '1';
+                blockDom.style.zIndex = '';
                 blockDom.style.transform = 'translate(0px, 0px) scale(1)';
             }
             if (currentTargetNode) {
@@ -690,6 +770,10 @@ class MatchEngine {
         const tempProp = block1.propType;
         block1.propType = block2.propType;
         block2.propType = tempProp;
+        
+        const tempTimer = block1.bombTimer;
+        block1.bombTimer = block2.bombTimer;
+        block2.bombTimer = tempTimer;
 
         if (dom2) block1.dom.appendChild(dom2);
         if (dom1) block2.dom.appendChild(dom1);
@@ -718,8 +802,8 @@ class MatchEngine {
         for (let r = 0; r < this.rows; r++) {
             let matchLen = 1;
             for (let c = 0; c < this.cols; c++) {
-                let currentValid = this.grid[r][c]?.isPlayable && this.grid[r][c].type && this.grid[r][c].propType !== 'color';
-                let nextValid = c + 1 < this.cols && this.grid[r][c+1]?.isPlayable && this.grid[r][c+1].type && this.grid[r][c+1].propType !== 'color';
+                let currentValid = this.grid[r][c]?.isPlayable && this.grid[r][c].type && this.grid[r][c].propType !== 'color' && this.grid[r][c].propType !== 'obstacle_jam';
+                let nextValid = c + 1 < this.cols && this.grid[r][c+1]?.isPlayable && this.grid[r][c+1].type && this.grid[r][c+1].propType !== 'color' && this.grid[r][c+1].propType !== 'obstacle_jam';
                 
                 if (currentValid && nextValid && this.grid[r][c].type.id === this.grid[r][c+1].type.id) {
                     matchLen++;
@@ -737,8 +821,8 @@ class MatchEngine {
         for (let c = 0; c < this.cols; c++) {
             let matchLen = 1;
             for (let r = 0; r < this.rows; r++) {
-                let currentValid = this.grid[r][c]?.isPlayable && this.grid[r][c].type && this.grid[r][c].propType !== 'color';
-                let nextValid = r + 1 < this.rows && this.grid[r+1][c]?.isPlayable && this.grid[r+1][c].type && this.grid[r+1][c].propType !== 'color';
+                let currentValid = this.grid[r][c]?.isPlayable && this.grid[r][c].type && this.grid[r][c].propType !== 'color' && this.grid[r][c].propType !== 'obstacle_jam';
+                let nextValid = r + 1 < this.rows && this.grid[r+1][c]?.isPlayable && this.grid[r+1][c].type && this.grid[r+1][c].propType !== 'color' && this.grid[r+1][c].propType !== 'obstacle_jam';
                 
                 if (currentValid && nextValid && this.grid[r][c].type.id === this.grid[r+1][c].type.id) {
                     matchLen++;
@@ -876,7 +960,7 @@ class MatchEngine {
                     for (let ic = 0; ic < this.cols; ic++) {
                         if (this.grid[ir][ic].isPlayable && this.grid[ir][ic].type?.id === colorType.id) {
                             this.grid[ir][ic].propType = propToConvert;
-                            this.updateBlockVisual(this.grid[ir][ic].blockDom, this.grid[ir][ic].type, propToConvert);
+                            this.updateBlockVisual(this.grid[ir][ic].blockDom, this.grid[ir][ic].type, propToConvert, this.grid[ir][ic].bombTimer);
                             targetCells.push(`${ir},${ic}`);
                             this.playBlackHoleSuck(ir, ic);
                         }
@@ -933,7 +1017,7 @@ class MatchEngine {
             
             let totalDamage = 0;
             let totalHeal = 0;
-            let stunAdded = 0;
+            let stunCount = 0; // PHONE 方塊計數
             let multiplier = 2.0; // 組合技保底 2 倍傷害
             
             resolved.forEach(str => {
@@ -947,7 +1031,7 @@ class MatchEngine {
                     totalHeal += block.type.heal;
                 } else if (block.type.type === 'stun') {
                     totalDamage += block.type.dmg;
-                    stunAdded += 1;
+                    stunCount++;
                 } else if (block.type.type === 'armor_break') {
                     multiplier += 0.5;
                 }
@@ -973,10 +1057,15 @@ class MatchEngine {
             
             if (totalDamage > 0) this.gameState.applyDamage(totalDamage);
             if (totalHeal > 0) this.gameState.applyHeal(totalHeal);
-            if (stunAdded > 0) {
-                this.gameState.bossTimer += Math.floor(stunAdded);
-                this.gameState.showFloatingText('+1 倒數', '#ffa502', document.querySelector('.boss-timer'));
-                this.gameState.updateUI();
+            // PHONE 暈眩：3 顆 +1，每多 1 顆再 +1，同回合上限 +5
+            if (stunCount >= 3) {
+                let stunToAdd = Math.min(stunCount - 2, 5 - this.stunThisTurn);
+                if (stunToAdd > 0) {
+                    this.stunThisTurn += stunToAdd;
+                    this.gameState.bossTimer += stunToAdd;
+                    this.gameState.showFloatingText(`+${stunToAdd} 倒數`, '#ffa502', document.querySelector('.boss-timer'));
+                    this.gameState.updateUI();
+                }
             }
             
             let delayBeforeGravity = 400;
@@ -1001,6 +1090,10 @@ class MatchEngine {
             console.error("Combo Error:", e);
         } finally {
             this.isProcessing = false;
+            // Combo 結束時移除徽章
+            if (this.comboCounter > 1) {
+                setTimeout(() => this.removeComoBadge(), 800);
+            }
         }
     }
 
@@ -1020,6 +1113,7 @@ class MatchEngine {
             
             if (this.comboCounter > 1) {
                 this.audio.playCombo(this.comboCounter);
+                this.updateComboBadge(this.comboCounter);
             } else {
                 this.audio.playMatch();
             }
@@ -1086,12 +1180,9 @@ class MatchEngine {
                 let spawnProp = null;
                 if (group.maxLen >= 5) {
                     spawnProp = 'color';
-                    this.gameState.showFloatingText('合成: 全圖消除!', group.type.color, document.getElementById('grid-container'));
                 } else if (group.hasH && group.hasV) {
                     spawnProp = 'cross';
-                    this.gameState.showFloatingText('合成: 十字爆破!', '#e74c3c', document.getElementById('grid-container'));
                 } else if (group.maxLen === 4) {
-                    this.gameState.showFloatingText('合成: 貫穿光束!', '#f1c40f', document.getElementById('grid-container'));
                     let isHoriz = false;
                     Array.from(group.cells).forEach(cStr => {
                         const [r, c] = cStr.split(',').map(Number);
@@ -1164,7 +1255,7 @@ class MatchEngine {
 
             let totalDamage = 0;
             let totalHeal = 0;
-            let stunAdded = 0;
+            let stunCount = 0; // PHONE 方塊計數
             
             resolved.forEach(str => {
                 const [r, c] = str.split(',').map(Number);
@@ -1179,9 +1270,10 @@ class MatchEngine {
                     totalHeal += block.type.heal;
                 } else if (block.type.type === 'stun') {
                     totalDamage += block.type.dmg;
-                    stunAdded += 1/3; 
+                    stunCount++;
                 } else if (block.type.type === 'armor_break') {
                     this.gameState.bossArmorBreak = true;
+                    this.gameState.updateUI();
                 } else if (block.type.type === 'delay') {
                     totalDamage += block.type.dmg;
                     this.gameState.bossTimer++; // 延長 Boss 攻擊倒數
@@ -1213,7 +1305,7 @@ class MatchEngine {
             cellsToUpgrade.forEach((prop, cStr) => {
                 const [r, c] = cStr.split(',').map(Number);
                 this.grid[r][c].propType = prop;
-                this.updateBlockVisual(this.grid[r][c].blockDom, this.grid[r][c].type, prop);
+                this.updateBlockVisual(this.grid[r][c].blockDom, this.grid[r][c].type, prop, this.grid[r][c].bombTimer);
                 
                 if (this.grid[r][c].blockDom) {
                     this.grid[r][c].blockDom.style.transition = 'transform 0.2s';
@@ -1262,14 +1354,19 @@ class MatchEngine {
             if (totalHeal > 0) {
                 this.gameState.applyHeal(totalHeal * multiplier);
             }
-            if (Math.floor(stunAdded) > 0) {
-                this.gameState.bossTimer += Math.floor(stunAdded);
-                this.gameState.showFloatingText('+1 倒數', '#ffa502', document.querySelector('.boss-timer'));
-                this.gameState.updateUI();
+            // PHONE 暈眩：3 顆 +1，每多 1 顆再 +1，同回合上限 +5
+            if (stunCount >= 3) {
+                let stunToAdd = Math.min(stunCount - 2, 5 - this.stunThisTurn);
+                if (stunToAdd > 0) {
+                    this.stunThisTurn += stunToAdd;
+                    this.gameState.bossTimer += stunToAdd;
+                    this.gameState.showFloatingText(`+${stunToAdd} 倒數`, '#ffa502', document.querySelector('.boss-timer'));
+                    this.gameState.updateUI();
+                }
             }
 
             if (this.comboCounter > 1 && totalDamage > 0) {
-                this.gameState.showFloatingText(`${this.comboCounter} COMBO!`, '#f1c40f', document.getElementById('grid-container'));
+                this.updateComboBadge(this.comboCounter);
             }
 
             let delayBeforeGravity = 250;
@@ -1297,6 +1394,85 @@ class MatchEngine {
             this.isProcessing = false;
             if (this._safetyTimer) clearTimeout(this._safetyTimer);
             this.resetHintTimer();
+            // Combo 結束時移除徽章
+            if (this.comboCounter > 1) {
+                setTimeout(() => this.removeComoBadge(), 800);
+            }
+        }
+    }
+
+
+
+    tickBombs() {
+        let exploded = false;
+        for(let r=0; r<this.rows; r++){
+            for(let c=0; c<this.cols; c++){
+                if(this.grid[r][c].isPlayable && this.grid[r][c].bombTimer > 0) {
+                    this.grid[r][c].bombTimer--;
+                    if(this.grid[r][c].bombTimer === 0) {
+                        // Explode
+                        this.gameState.playerHp = Math.max(0, this.gameState.playerHp - 15);
+                        this.gameState.showFloatingText("-15 甩鍋引爆!", "#ff4757", document.querySelector('.player-avatar').parentElement);
+                        document.getElementById('game-container').classList.add('shake');
+                        setTimeout(() => document.getElementById('game-container').classList.remove('shake'), 300);
+                        this.audio.playDamage();
+                        
+                        this.grid[r][c].type = null;
+                        this.grid[r][c].propType = null;
+                        this.grid[r][c].bombTimer = 0;
+                        if(this.grid[r][c].blockDom) {
+                            this.grid[r][c].blockDom.remove();
+                            this.grid[r][c].blockDom = null;
+                        }
+                        exploded = true;
+                    } else {
+                        // Update visual
+                        this.updateBlockVisual(this.grid[r][c].blockDom, this.grid[r][c].type, this.grid[r][c].propType, this.grid[r][c].bombTimer);
+                    }
+                }
+            }
+        }
+        if(exploded) {
+            this.gameState.updateUI();
+            if (this.gameState.playerHp <= 0) {
+                setTimeout(() => {
+                    const gameOverOverlay = document.getElementById('game-over-overlay');
+                    if (gameOverOverlay) gameOverOverlay.classList.remove('hidden');
+                }, 500);
+            }
+            // Need gravity
+            setTimeout(() => this.applyGravityAndRefill(), 500);
+        }
+    }
+
+    triggerBossHellModeSkills() {
+        let saveObj = JSON.parse(localStorage.getItem('office_worker_save') || '{}');
+        if ((saveObj.playthrough || 1) <= 1) return; // Only trigger in NG+
+
+        // Trigger randomly (e.g. 15% chance every move)
+        if (Math.random() < 0.15) {
+            let emptySpots = [];
+            for (let r = 0; r < this.rows; r++) {
+                for (let c = 0; c < this.cols; c++) {
+                    if (this.grid[r][c].isPlayable && !this.grid[r][c].propType) {
+                        emptySpots.push({r, c});
+                    }
+                }
+            }
+            if (emptySpots.length > 0) {
+                // Randomly pick a skill: Paper Jam
+                let spot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
+                this.grid[spot.r][spot.c].propType = 'obstacle_jam';
+                this.updateBlockVisual(this.grid[spot.r][spot.c].blockDom, this.grid[spot.r][spot.c].type, 'obstacle_jam', this.grid[spot.r][spot.c].bombTimer);
+                this.gameState.showFloatingText('Boss 惡意干擾!', '#ff4757', this.grid[spot.r][spot.c].dom);
+                
+                // Jiggle animation
+                const dom = this.grid[spot.r][spot.c].blockDom;
+                if(dom) {
+                    dom.style.transform = 'scale(1.2)';
+                    setTimeout(() => dom.style.transform = 'scale(1)', 200);
+                }
+            }
         }
     }
 
@@ -1320,6 +1496,7 @@ class MatchEngine {
                     }
                     this.grid[r][c].type = null;
                     this.grid[r][c].propType = null;
+                    this.grid[r][c].bombTimer = 0;
                     this.grid[r][c].blockDom = null;
                 }
             }
@@ -1435,6 +1612,42 @@ class MatchEngine {
         }
     }
 
+    updateComboBadge(count) {
+        let badge = document.getElementById('combo-badge');
+        const bossAvatar = document.querySelector('.boss-avatar');
+        if (!bossAvatar) return;
+
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'combo-badge';
+            badge.className = 'combo-badge';
+            bossAvatar.parentElement.style.position = 'relative';
+            bossAvatar.parentElement.appendChild(badge);
+        }
+
+        badge.innerHTML = `<span class="combo-count">${count}</span> COMBO!`;
+
+        // 每次更新時播放彈跳動畫
+        badge.style.animation = 'none';
+        void badge.offsetWidth;
+        badge.style.animation = '';
+
+        // Boss 頭像加上受壓效果
+        bossAvatar.classList.add('combo-pressure');
+    }
+
+    removeComoBadge() {
+        const badge = document.getElementById('combo-badge');
+        if (badge) {
+            badge.style.transition = 'opacity 0.4s, transform 0.4s';
+            badge.style.opacity = '0';
+            badge.style.transform = 'scale(1.3) rotate(5deg)';
+            setTimeout(() => { if (badge.parentNode) badge.remove(); }, 400);
+        }
+        const bossAvatar = document.querySelector('.boss-avatar');
+        if (bossAvatar) bossAvatar.classList.remove('combo-pressure');
+    }
+
     showHint() {
         if (this.isProcessing) {
             this.resetHintTimer();
@@ -1527,7 +1740,7 @@ class MatchEngine {
             for (let c = 0; c < this.cols; c++) {
                 if (this.grid[r][c].isPlayable && this.grid[r][c].blockDom) {
                     const blockObj = this.grid[r][c];
-                    this.updateBlockVisual(blockObj.blockDom, blockObj.type, blockObj.propType);
+                    this.updateBlockVisual(blockObj.blockDom, blockObj.type, blockObj.propType, blockObj.bombTimer);
                     blockObj.blockDom.style.transform = 'scale(1)';
                 }
             }
@@ -1748,7 +1961,7 @@ class MatchEngine {
                 const r = pos[0];
                 const c = pos[1];
                 this.grid[r][c].propType = props[i];
-                this.updateBlockVisual(this.grid[r][c].blockDom, this.grid[r][c].type, props[i]);
+                this.updateBlockVisual(this.grid[r][c].blockDom, this.grid[r][c].type, props[i], this.grid[r][c].bombTimer);
             }
         }
     }
@@ -1784,7 +1997,7 @@ let currentEngine = null;
 const BLOCK_TUTORIALS = {
     TEA:   { name: '續命咖啡', color: 'linear-gradient(135deg, #fd79a8, #e84393)', icon: 'fa-mug-hot',       desc: '消除它不僅能造成傷害，還能為您回復 5 點血量！' },
     PHONE: { name: '催命電話', color: 'linear-gradient(135deg, #fab1a0, #e17055)', icon: 'fa-phone',         desc: '消除它能造成傷害，並有機率打斷敵人的動作！' },
-    KPI:   { name: '績效考核', color: 'linear-gradient(135deg, #55efc4, #00b894)', icon: 'fa-bullseye',      desc: '基礎傷害為 0，但能大幅削減 Boss 的防禦狀態！' },
+    KPI:   { name: '績效考核', color: 'linear-gradient(135deg, #55efc4, #00b894)', icon: 'fa-bullseye',      desc: '基礎傷害為 0，但會讓下一次攻擊傷害翻倍（×2）！' },
     FILE:  { name: '黑歷史檔案', color: 'linear-gradient(135deg, #a29bfe, #6c5ce7)', icon: 'fa-folder-open',   desc: '挖出黑歷史！造成大量的直接傷害！' },
     CLOCK: { name: '摸魚時鐘', color: 'linear-gradient(135deg, #81ecec, #00cec9)', icon: 'fa-clock',         desc: '造成傷害並強制拖延 Boss 的出手時間！' },
     MONEY: { name: '年終獎金', color: 'linear-gradient(135deg, #ffeaa7, #fdcb6e)', icon: 'fa-sack-dollar',   desc: '發錢啦！給予極高的爆發傷害與大幅回血！' }
@@ -1866,10 +2079,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     const introSeen = saveObj.introSeen === true;
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTestMode = urlParams.has('test');
+    
     const introComic = document.getElementById('intro-comic');
     const appContainer = document.getElementById('game-container');
     
-    if (!introSeen && introComic) {
+    if (!introSeen && introComic && !isTestMode) {
         // game-container and intro-comic visibility is handled by index.html script initially
         let currentPanel = 1;
         const nextBtn = document.getElementById('next-comic-btn');
@@ -1909,6 +2125,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initGame(saveData) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const testLevelParam = urlParams.get('test');
+        if (testLevelParam) {
+            const testId = parseInt(testLevelParam);
+            const testLevel = LEVELS.find(l => l.id === testId);
+            if (testLevel) {
+                startGame(testLevel);
+                return;
+            }
+        }
+        
         let startLevel = LEVELS[0];
         if (saveData && saveData.currentLevelId) {
             const savedLevel = LEVELS.find(l => l.id === saveData.currentLevelId && !l.isTest);
@@ -1917,5 +2144,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         startGame(startLevel);
+    }
+    
+    // Restart logic
+    const restartBtn = document.getElementById('restart-btn');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            const gameOverOverlay = document.getElementById('game-over-overlay');
+            if (gameOverOverlay) gameOverOverlay.classList.add('hidden');
+            
+            let saveObj = {};
+            try {
+                const saveRaw = localStorage.getItem('office_worker_save');
+                if (saveRaw) saveObj = JSON.parse(saveRaw);
+            } catch (e) {}
+            
+            initGame(saveObj);
+        });
     }
 });
