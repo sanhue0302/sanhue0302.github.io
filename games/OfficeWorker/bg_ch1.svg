@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="morning" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#74b9ff" />
+      <stop offset="100%" stop-color="#ffeaa7" />
+    </linearGradient>
+    <linearGradient id="wall" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fdfbfb" />
+      <stop offset="100%" stop-color="#ebedee" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Window & Morning Sky -->
+  <rect x="0" y="0" width="800" height="400" fill="url(#wall)" />
+  <rect x="50" y="20" width="200" height="150" fill="url(#morning)" rx="5" stroke="#ccc" stroke-width="5" />
+  
+  <!-- Clouds outside -->
+  <circle cx="100" cy="70" r="15" fill="#fff" opacity="0.8" />
+  <circle cx="120" cy="65" r="20" fill="#fff" opacity="0.8" />
+  <circle cx="140" cy="75" r="15" fill="#fff" opacity="0.8" />
+
+  <!-- Partition Board (Cubicle) -->
+  <rect x="0" y="200" width="800" height="150" fill="#dfe6e9" />
+  <path d="M 0 200 L 800 200 L 800 210 L 0 210 Z" fill="#b2bec3" />
+
+  <!-- Desk Area -->
+  <path d="M0 350 L800 350 L800 400 L0 400 Z" fill="#b9a08a" />
+  <path d="M0 350 L800 350 L800 360 L0 360 Z" fill="#a08a74" />
+  
+  <!-- Stack of generic papers / Box of stuff for a rookie -->
+  <rect x="650" y="250" width="100" height="100" fill="#cd84f1" rx="5" />
+  <rect x="655" y="255" width="90" height="90" fill="#c56cf0" rx="5" />
+  <text x="700" y="300" font-family="Arial" font-size="20" fill="#fff" text-anchor="middle">NEW</text>
+  
+  <!-- Simple Monitor -->
+  <rect x="350" y="220" width="120" height="80" rx="5" fill="#2d3436" />
+  <rect x="360" y="230" width="100" height="60" fill="#55efc4" opacity="0.8" />
+  <!-- Stand -->
+  <rect x="400" y="300" width="20" height="50" fill="#2d3436" />
+  <rect x="375" y="340" width="70" height="10" fill="#2d3436" />
+  
+  <!-- Coffee (Energy) -->
+  <path d="M 280 320 L 285 350 L 305 350 L 310 320 Z" fill="#fff" />
+</svg>

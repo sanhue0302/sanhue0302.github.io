@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="sunset" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e17055" />
+      <stop offset="50%" stop-color="#fdcb6e" />
+      <stop offset="100%" stop-color="#ffeaa7" />
+    </linearGradient>
+    <linearGradient id="glass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <filter id="sun-glow">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Golden hour sky -->
+  <rect width="800" height="400" fill="url(#sunset)" />
+  
+  <!-- Giant Sun setting -->
+  <circle cx="400" cy="200" r="80" fill="#fff" opacity="0.8" filter="url(#sun-glow)" />
+
+  <!-- City Skyline Silhouette (far away) -->
+  <path d="M 0 250 L 50 250 L 50 180 L 90 180 L 90 260 L 140 260 L 140 150 L 170 150 L 170 220 L 250 220 L 250 120 L 300 120 L 300 250 L 380 250 L 380 160 L 420 160 L 420 280 L 480 280 L 480 140 L 520 140 L 520 230 L 600 230 L 600 110 L 650 110 L 650 240 L 710 240 L 710 170 L 750 170 L 750 280 L 800 280 L 800 400 L 0 400 Z" fill="#2d3436" opacity="0.8" />
+  
+  <!-- Closer buildings -->
+  <path d="M 100 400 L 100 220 L 200 220 L 200 400 Z" fill="#1e272e" />
+  <path d="M 550 400 L 550 180 L 680 180 L 680 400 Z" fill="#1e272e" />
+
+  <!-- CEO Penthouse interior -->
+  <!-- Floor -->
+  <polygon points="0,320 800,320 800,400 0,400" fill="#111" opacity="0.9" />
+  <!-- Reflection on the floor -->
+  <polygon points="320,320 480,320 520,400 280,400" fill="#fdcb6e" opacity="0.2" />
+
+  <!-- Luxurious Pillars -->
+  <rect x="20" y="-50" width="40" height="400" fill="#2d3436" />
+  <rect x="740" y="-50" width="40" height="400" fill="#2d3436" />
+  
+  <!-- Glass Reflection overlay -->
+  <rect x="0" y="0" width="800" height="320" fill="url(#glass)" />
+  
+  <!-- Simple abstract art or CEO chair silhouette -->
+  <path d="M 350 350 C 350 250, 450 250, 450 350 Z" fill="#000" opacity="0.7" />
+  <rect x="390" y="350" width="20" height="20" fill="#000" />
+</svg>

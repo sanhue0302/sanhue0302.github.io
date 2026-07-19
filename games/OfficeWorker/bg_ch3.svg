@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <radialGradient id="fluorescent" cx="50%" cy="0%" r="100%">
+      <stop offset="0%" stop-color="#fff" />
+      <stop offset="100%" stop-color="#dcdde1" />
+    </radialGradient>
+  </defs>
+
+  <!-- Meeting Room Wall -->
+  <rect width="800" height="400" fill="url(#fluorescent)" />
+  <rect x="0" y="320" width="800" height="80" fill="#7f8fa6" />
+  <rect x="0" y="310" width="800" height="10" fill="#353b48" />
+
+  <!-- Giant Whiteboard -->
+  <rect x="150" y="50" width="500" height="220" fill="#f5f6fa" rx="10" stroke="#718093" stroke-width="8" />
+  
+  <!-- Charts and messy diagrams on whiteboard -->
+  <!-- Line chart going up then dropping -->
+  <path d="M 180 200 L 250 150 L 320 180 L 400 80 L 450 90 L 500 220 L 580 250" fill="none" stroke="#e84118" stroke-width="4" stroke-linejoin="round" />
+  <!-- Arrows -->
+  <polygon points="580,250 570,240 590,245" fill="#e84118" />
+  <circle cx="400" cy="80" r="6" fill="#4cd137" />
+  
+  <!-- Flowchart boxes -->
+  <rect x="200" y="70" width="60" height="40" fill="none" stroke="#00a8ff" stroke-width="3" rx="5" />
+  <rect x="290" y="70" width="60" height="40" fill="none" stroke="#00a8ff" stroke-width="3" rx="5" />
+  <line x1="260" y1="90" x2="290" y2="90" stroke="#00a8ff" stroke-width="3" />
+  <polygon points="290,90 280,85 280,95" fill="#00a8ff" />
+
+  <!-- Confused scribble -->
+  <path d="M 450 150 Q 470 120 490 160 T 520 140 T 550 180" fill="none" stroke="#273c75" stroke-width="3" />
+  <text x="500" y="195" font-family="Arial" font-size="24" fill="#273c75" font-weight="bold">???</text>
+
+  <!-- Markers on the ledge -->
+  <rect x="170" y="260" width="25" height="4" fill="#e84118" />
+  <rect x="205" y="260" width="25" height="4" fill="#00a8ff" />
+  <rect x="240" y="260" width="25" height="4" fill="#273c75" />
+
+  <!-- Meeting Table edge -->
+  <path d="M -50 360 L 850 360 L 850 400 L -50 400 Z" fill="#d2dae2" />
+  
+  <!-- Empty Coffee Cups and crumpled papers -->
+  <path d="M 100 370 L 105 390 L 125 390 L 130 370 Z" fill="#fff" />
+  <path d="M 350 375 L 355 390 L 370 390 L 375 375 Z" fill="#fff" />
+  
+  <!-- Crumpled paper ball -->
+  <circle cx="200" cy="380" r="10" fill="#ccc" />
+  <circle cx="650" cy="375" r="12" fill="#bbb" />
+  <circle cx="670" cy="385" r="8" fill="#ddd" />
+
+</svg>

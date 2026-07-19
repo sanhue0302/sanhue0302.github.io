@@ -276,7 +276,7 @@ const LEVELS = [
     {
         id: 12,
         title: "2-4：對齊顆粒度",
-        bossName: "難搞的協力廠商(小 Boss)",
+        bossName: "難搞的協力廠商",
         bossAvatar: "🤷‍♂️",
         bossHp: 800,
         bossAtk: 25,
@@ -572,7 +572,7 @@ const LEVELS = [
     {
         id: 25,
         title: "3-5：我想準點下班",
-        bossName: "隨時想躺平的下屬 (小 Boss)",
+        bossName: "隨時想躺平的下屬",
         bossAvatar: "👹",
         bossHp: 2000,
         bossAtk: 30,
@@ -658,7 +658,7 @@ const LEVELS = [
     {
         id: 29,
         title: "3-9：搶奪年度優秀員工",
-        bossName: "抓耙子同期主管 (小 Boss)",
+        bossName: "抓耙子同期主管",
         bossAvatar: "👹",
         bossHp: 2400,
         bossAtk: 38,
@@ -788,7 +788,7 @@ const LEVELS = [
     {
         id: 35,
         title: "3-15：不要跟我談過程，我只要數字",
-        bossName: "大 Boss：數字至上的中階處長",
+        bossName: "數字至上的中階處長",
         bossAvatar: "👹",
         bossHp: 3000,
         bossAtk: 50,
@@ -930,7 +930,7 @@ const LEVELS = [
     {
         id: 41,
         title: "4-6：合規性審查",
-        bossName: "小 Boss：法務部擋箭牌",
+        bossName: "法務部擋箭牌",
         bossAvatar: "👹",
         bossHp: 3600,
         bossAtk: 62,
@@ -1192,7 +1192,7 @@ const LEVELS = [
     {
         id: 53,
         title: "4-18：這是公司未來的戰略藍圖",
-        bossName: "大 Boss：副總經理 (VP)",
+        bossName: "副總經理 (VP)",
         bossAvatar: "👹",
         bossHp: 4800,
         bossAtk: 86,
@@ -1334,7 +1334,7 @@ const LEVELS = [
     {
         id: 59,
         title: "5-6：應付當地勞檢",
-        bossName: "小 Boss：水土不服的法規",
+        bossName: "水土不服的法規",
         bossAvatar: "👹",
         bossHp: 5400,
         bossAtk: 98,
@@ -1636,7 +1636,7 @@ const LEVELS = [
     {
         id: 73,
         title: "5-20：清算前任的呆帳",
-        bossName: "大 Boss：前分公司主管的幽靈",
+        bossName: "前分公司主管的幽靈",
         bossAvatar: "👹",
         bossHp: 6800,
         bossAtk: 126,
@@ -1734,7 +1734,7 @@ const LEVELS = [
     {
         id: 77,
         title: "6-4：惡意做空陰謀",
-        bossName: "小 Boss：禿鷹基金經理人",
+        bossName: "禿鷹基金經理人",
         bossAvatar: "👹",
         bossHp: 7200,
         bossAtk: 134,
@@ -1822,7 +1822,7 @@ const LEVELS = [
     {
         id: 81,
         title: "6-8：發動董事會彈劾案",
-        bossName: "精英 Boss：激進的外部股東",
+        bossName: "激進的外部股東",
         bossAvatar: "👹",
         bossHp: 7600,
         bossAtk: 142,
@@ -1909,7 +1909,7 @@ const LEVELS = [
     {
         id: 85,
         title: "6-12：這家公司是我創立的", // 修正：將 85 關原本錯亂、不完整的對話完全與故事主線接軌！
-        bossName: "最終魔王：創辦人暨董事長",
+        bossName: "創辦人暨董事長",
         bossAvatar: "👹",
         bossHp: 8000,
         bossAtk: 150,

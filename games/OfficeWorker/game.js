@@ -165,6 +165,27 @@ class GameState {
     }
 
     init() {
+        let chapter = 1;
+        const lvl = this.currentLevel.id;
+        if (lvl >= 74) chapter = 6;
+        else if (lvl >= 54) chapter = 5;
+        else if (lvl >= 36) chapter = 4;
+        else if (lvl >= 21) chapter = 3;
+        else if (lvl >= 9) chapter = 2;
+
+        const playerAvatarImg = document.querySelector('.player-avatar');
+        if (playerAvatarImg) {
+            let playerSeed = "Rookie";
+            if (chapter === 6) playerSeed = "CEO_Player";
+            else if (chapter === 5) playerSeed = "Director";
+            else if (chapter === 4) playerSeed = "Manager";
+            else if (chapter === 3) playerSeed = "TeamLead";
+            else if (chapter === 2) playerSeed = "TiredWorker";
+            
+            // 使用 notionists 風格，與 Boss 及部屬保持一致的漫畫線條感
+            playerAvatarImg.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${playerSeed}&backgroundColor=transparent`;
+        }
+
         const bossAvatarImg = document.querySelector('.boss-avatar');
         if (bossAvatarImg) {
             const seed = encodeURIComponent(this.currentLevel.bossName);
@@ -178,7 +199,9 @@ class GameState {
         if (bossNameDom) bossNameDom.innerText = this.currentLevel.bossName;
         
         const combatUi = document.getElementById('combat-ui');
-        // Removed dynamic background to let CSS office scene show
+        if (combatUi) {
+            combatUi.style.backgroundImage = `url('bg_ch${chapter}.svg')`;
+        }
 
         const subUi = document.getElementById('subordinates-ui');
         if (this.subordinates.length > 0) {
