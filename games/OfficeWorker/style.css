@@ -10,13 +10,15 @@ body, html {
     font-family: 'Inter', sans-serif;
     overflow: hidden;
     user-select: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
 }
 
 #game-container {
     width: 100%;
     height: 100%;
-    max-width: 450px;
-    max-height: 800px;
+    max-width: 500px;
+    max-height: 1000px;
     background-color: #f5f6fa;
     box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     border-radius: 12px;
@@ -32,8 +34,8 @@ body, html {
     position: relative;
     padding: 10px;
     
-    /* 辦公室窗外夜景 / 辦公室內部實景 */
-    background: url('bg.svg') center/cover no-repeat;
+    /* 預設背景，進入遊戲後會由 GameState 動態載入 theme/assets/bg_chX.svg */
+    background: #2c3e50 center/cover no-repeat;
     
     border-bottom: 2px solid #dcdde1;
     display: flex;
@@ -1119,4 +1121,34 @@ body, html {
     text-shadow: 1px 1px 1px #000;
     margin-top: 1px;
     white-space: nowrap;
+}
+
+/* --- Landscape Mode (iPad / Horizontal Screens) --- */
+@media screen and (orientation: landscape) and (max-height: 850px) {
+    #game-container {
+        max-width: 1200px;
+        flex-direction: row;
+    }
+    
+    #combat-ui {
+        flex: 1;
+        border-bottom: none;
+        border-right: 2px solid #dcdde1;
+        justify-content: center; /* Center the combat elements vertically */
+    }
+    
+    #grid-container {
+        flex: 1.2;
+    }
+
+    /* Make avatars slightly smaller if height is extremely limited */
+    @media (max-height: 600px) {
+        .sf-avatar {
+            width: 90px;
+            height: 90px;
+        }
+        .hp-bar-container.sf-hp-container {
+            height: 18px;
+        }
+    }
 }

@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>社畜退散！腦內暴走大作戰</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -10,56 +10,9 @@
     <style>
         .initial-hidden { display: none !important; }
     </style>
-    <script>
-        // Check save immediately to prevent FOUC (flash of unstyled content)
-        (function() {
-            let introSeen = false;
-            let isTestMode = new URLSearchParams(window.location.search).has('test');
-            try {
-                const saveRaw = localStorage.getItem('office_worker_save');
-                if (saveRaw) {
-                    const saveObj = JSON.parse(saveRaw);
-                    if (saveObj.introSeen) introSeen = true;
-                }
-            } catch (e) {}
-
-            document.addEventListener('DOMContentLoaded', () => {
-                if (introSeen || isTestMode) {
-                    document.getElementById('game-container').classList.remove('initial-hidden');
-                } else {
-                    document.getElementById('intro-comic').classList.remove('initial-hidden');
-                }
-            });
-        })();
-    </script>
+    <script src="theme/config.js"></script>
 </head>
 <body>
-    <!-- 開場故事漫畫風遮罩 -->
-    <div id="intro-comic" class="initial-hidden">
-        <div class="comic-panel" id="panel-1">
-            <div class="comic-art">🏢⛈️</div>
-            <div class="comic-text">陰暗、下著暴雨的都市叢林。<br>高聳商業大廈頂樓巨大的企業 Logo 閃爍著冰冷的光芒。</div>
-        </div>
-        <div class="comic-panel hidden" id="panel-2">
-            <div class="comic-art">🚇😫</div>
-            <div class="comic-text">深夜十一點半的捷運站。<br>你一臉憔悴，黑眼圈深重，手裡拿著被揉皺的錄取通知書。</div>
-        </div>
-        <div class="comic-panel hidden" id="panel-3">
-            <div class="comic-text monologue">
-                <p>「小時候，長輩總說好好讀書、進大公司，就能出人頭地、實現夢想。」</p>
-                <p>「長大後我才發現，夢想這兩個字，在打卡鐘響起的那一刻，就已經被主管拿去墊咖啡杯了。」</p>
-                <p>「無止境的加班、推卸責任的老鳥、拍馬屁的同期、朝令夕改的業主……這不是辦公室，這是沒有硝煙的戰場！」</p>
-            </div>
-        </div>
-        <div class="comic-panel hidden" id="panel-4">
-            <div class="comic-art fire-eyes">🔥👁️👁️🔥</div>
-            <div class="comic-text monologue">
-                <p>「既然退無可退，那就徹底擊潰他們！」</p>
-                <p>「今天，我要拿回屬於我的一切。從基層社畜到最高總裁，這條爆肝的爬梯之路，我走定了！」</p>
-            </div>
-        </div>
-        <button id="next-comic-btn">繼續 <i class="fa-solid fa-caret-right"></i></button>
-    </div>
 
     <div id="game-container" class="initial-hidden">
     <!-- Top Area: Combat UI (Street Fighter Style) -->
@@ -167,7 +120,18 @@
     </div>
 </div>
 
-<script src="levels.js"></script>
-<script src="game.js"></script>
+<script src="data/levels.js"></script>
+<script src="theme/intro.js"></script>
+<script src="engine/intro-manager.js"></script>
+<script src="engine/audio-manager.js"></script>
+<script src="engine/dialog-manager.js"></script>
+<script src="engine/game-state.js"></script>
+<script src="engine/match-engine.js"></script>
+<script src="engine/main.js"></script>
+<script>
+    document.title = GAME_CONFIG.title;
+    document.querySelector('.game-over-title').innerText = GAME_CONFIG.gameOverTitle;
+    document.querySelector('.game-over-text').innerText = GAME_CONFIG.gameOverText;
+</script>
 </body>
 </html>
