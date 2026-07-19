@@ -140,6 +140,7 @@ class GameState {
         // 若為測試關卡 (ID >= 90)，則以最後一關(85)來計算，約 520 HP
         const effectiveLevel = levelData.id >= 90 ? 85 : levelData.id;
         const maxHp = 100 + (effectiveLevel - 1) * 5;
+        this.playerAtkMultiplier = 1 + (effectiveLevel - 1) * 0.25;
         
         this.playerHp = maxHp;
         this.playerMaxHp = maxHp;
@@ -1022,6 +1023,7 @@ class MatchEngine {
             
             let totalDamage = 0;
             let totalHeal = 0;
+            let teaCount = 0;
             let stunCount = 0; // PHONE 方塊計數
             let multiplier = 2.0; // 組合技保底 2 倍傷害
             
@@ -1033,7 +1035,7 @@ class MatchEngine {
                 if (['attack', 'heavy', 'poison'].includes(block.type.type)) {
                     totalDamage += block.type.dmg;
                 } else if (block.type.type === 'heal') {
-                    totalHeal += block.type.heal;
+                    teaCount++;
                 } else if (block.type.type === 'stun') {
                     totalDamage += block.type.dmg;
                     stunCount++;
@@ -1057,6 +1059,15 @@ class MatchEngine {
                 this.grid[r][c].propType = null;
             });
             
+            if (teaCount > 0) {
+                if (teaCount < 3) {
+                    totalHeal += teaCount * (this.gameState.bossAtk / 9);
+                } else {
+                    totalHeal += ((teaCount - 2) / 3) * this.gameState.bossAtk;
+                }
+            }
+            
+            totalDamage = totalDamage * this.gameState.playerAtkMultiplier;
             totalDamage = Math.floor(totalDamage * multiplier);
             totalHeal = Math.floor(totalHeal * multiplier);
             
@@ -1260,6 +1271,7 @@ class MatchEngine {
 
             let totalDamage = 0;
             let totalHeal = 0;
+            let teaCount = 0;
             let stunCount = 0; // PHONE 方塊計數
             
             resolved.forEach(str => {
@@ -1272,7 +1284,7 @@ class MatchEngine {
                 if (['attack', 'heavy', 'poison'].includes(block.type.type)) {
                     totalDamage += block.type.dmg;
                 } else if (block.type.type === 'heal') {
-                    totalHeal += block.type.heal;
+                    teaCount++;
                 } else if (block.type.type === 'stun') {
                     totalDamage += block.type.dmg;
                     stunCount++;
@@ -1353,11 +1365,21 @@ class MatchEngine {
                 }
             }
 
+            if (teaCount > 0) {
+                if (teaCount < 3) {
+                    totalHeal += teaCount * (this.gameState.bossAtk / 9);
+                } else {
+                    totalHeal += ((teaCount - 2) / 3) * this.gameState.bossAtk;
+                }
+            }
+
+            totalDamage = totalDamage * this.gameState.playerAtkMultiplier;
+
             if (totalDamage > 0) {
-                this.gameState.applyDamage(totalDamage * multiplier);
+                this.gameState.applyDamage(Math.floor(totalDamage * multiplier));
             }
             if (totalHeal > 0) {
-                this.gameState.applyHeal(totalHeal * multiplier);
+                this.gameState.applyHeal(Math.floor(totalHeal * multiplier));
             }
             // PHONE 暈眩：3 顆 +1，每多 1 顆再 +1，同回合上限 +5
             if (stunCount >= 3) {
