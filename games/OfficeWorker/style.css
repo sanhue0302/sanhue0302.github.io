@@ -3,6 +3,8 @@ body, html {
     padding: 0;
     width: 100%;
     height: 100%;
+    height: 100svh; /* 專為 iOS Safari 等手機瀏覽器設計的安全高度 */
+    touch-action: none; /* 鎖死原生的滑動、雙指縮放等行為 */
     display: flex;
     justify-content: center;
     align-items: center;
