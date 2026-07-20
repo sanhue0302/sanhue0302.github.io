@@ -73,6 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
         console.error("讀取存檔失敗", e);
     }
+
+    // 嘗試在第一次點擊時進入全螢幕
+    document.addEventListener('click', function enterFullscreen() {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`全螢幕請求失敗: ${err.message}`);
+            });
+        }
+        document.removeEventListener('click', enterFullscreen);
+    }, { once: true });
     
     const introSeen = saveObj.introSeen === true;
     const urlParams = new URLSearchParams(window.location.search);
