@@ -1,0 +1,1256 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    user-select: none;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 1000px;
+    background-color: #f5f6fa;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- Combat UI --- */
+#combat-ui {
+    flex: 1;
+    position: relative;
+    padding: 10px;
+    
+    /* 預設背景，進入遊戲後會由 GameState 動態載入 theme/assets/bg_chX.svg */
+    background: #2c3e50 center/cover no-repeat;
+    
+    border-bottom: 2px solid #dcdde1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    transition: background 0.5s ease-in-out;
+}
+
+.level-title {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 8px;
+    margin-top: -2px;
+    z-index: 10;
+    position: relative;
+    letter-spacing: 1px;
+}
+
+.sf-header {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 5px;
+    position: relative;
+    z-index: 2;
+}
+
+.sf-hp-wrapper {
+    flex: 1;
+    display: flex;
+}
+
+.sf-hp-wrapper.player-side {
+    justify-content: flex-end;
+    margin-right: -2px;
+}
+
+.sf-hp-wrapper.boss-side {
+    justify-content: flex-start;
+    margin-left: -2px;
+}
+
+.hp-bar-container.sf-hp-container {
+    width: 95%;
+    height: 24px;
+    background: #c0392b; /* SF depleted health color */
+    border: 3px solid #f1c40f; /* SF yellow border */
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+.hp-bar {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Player HP depletes right to left */
+.hp-bar.player {
+    background: linear-gradient(180deg, #f1c40f 0%, #f39c12 100%);
+    transform-origin: right;
+    float: right;
+}
+
+/* Boss HP depletes left to right */
+.hp-bar.boss {
+    background: linear-gradient(180deg, #f1c40f 0%, #f39c12 100%);
+    transform-origin: left;
+    float: left;
+}
+
+.hp-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 0;
+    left: 0;
+    line-height: 18px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    display: none; /* Hide numbers to be more like SF, or keep them but small */
+}
+
+.sf-center-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    z-index: 5;
+    margin-top: -10px;
+}
+
+.ko-badge {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    font-style: italic;
+    color: #f1c40f;
+    text-shadow: 2px 2px 0px #e74c3c, -1px -1px 0px #2c3e50;
+    margin-bottom: 2px;
+}
+
+.boss-timer {
+    font-size: 20px;
+    font-weight: 900;
+    color: #e74c3c;
+    background: transparent;
+    padding: 0;
+    border: none;
+    text-shadow: 2px 2px 0px #fff, -1px -1px 0px #fff;
+}
+
+.sf-names {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin: 5px auto 0;
+    z-index: 2;
+    position: relative;
+}
+
+.fighter-name {
+    font-size: 16px;
+    font-weight: 900;
+    color: #e1b12c;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
+}
+
+.sf-avatars {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    flex: 1;
+    padding: 0 10px;
+    margin-top: -30px; /* Overlap with names */
+}
+
+.sf-avatar {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    animation: breathe 3s ease-in-out infinite;
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+}
+
+@keyframes breathe {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05) translateY(-5px); }
+    100% { transform: scale(1); }
+}
+
+/* --- Grid Area --- */
+#grid-container {
+    flex: 2;
+    background: #1e272e;
+    padding: 10px;
+    display: grid;
+    gap: 5px;
+    /* Grid template will be set by JS based on level size */
+    justify-content: center;
+    align-content: center;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.grid-cell {
+    background: #2f3640;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1;
+    touch-action: none;
+}
+
+.grid-cell-empty {
+    aspect-ratio: 1 / 1;
+    pointer-events: none;
+}
+
+.block {
+    width: 90%;
+    height: 90%;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    cursor: grab;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: absolute;
+    z-index: 5;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.block:active {
+    cursor: grabbing;
+    transform: scale(0.85);
+}
+
+.prop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+    text-shadow: 0 0 5px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.5);
+    z-index: 2;
+    pointer-events: none;
+}
+.prop-overlay.cross {
+    font-size: 24px;
+    color: #ffda79;
+}
+
+/* --- Dialogue Overlay (AVG / Visual Novel Style) --- */
+#dialogue-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s;
+    overflow: hidden;
+}
+
+#dialogue-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Layer 1: 物理背景層 */
+.background-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+/* Layer 2: 物理立繪：緊貼螢幕下緣，水平置中 */
+.stand-painting-layer {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 80%; /* 佔畫面的 80% 高度 */
+    z-index: 2;
+    pointer-events: none;
+    transition: all 0.2s ease-in-out;
+}
+.stand-painting-layer img {
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Layer 3: 滿版 CG 層 */
+.cg-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 3;
+}
+.cg-layer img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+
+/* Layer 4: 中央場景/旁白描述區 */
+#narration-overlay {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85%;
+    max-width: 600px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.75);
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    z-index: 4;
+    line-height: 1.6;
+}
+
+/* 旁白出現時的動態效果 */
+@keyframes narrationFadeIn {
+    0% { opacity: 0; transform: translate(-50%, -45%) scale(0.95); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.narration-animate {
+    animation: narrationFadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Layer 5: 底部對話框基本樣式 (常規說話狀態) */
+.dialogue-box {
+    position: absolute;
+    bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    width: 90%; max-width: 800px;
+    background: rgba(15, 15, 25, 0.9);
+    border: 2px solid #ff4757; /* 復仇主題紅邊框 */
+    border-radius: 12px;
+    padding: 20px;
+    z-index: 5;
+    transition: all 0.25s ease;
+    cursor: pointer;
+}
+
+.dialogue-portrait {
+    position: absolute;
+    bottom: 100%; /* 對話框的正上方 */
+    left: 20px;
+    margin-bottom: -20px; /* 往下沉疊加在框線上 */
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.dialogue-portrait img {
+    height: 180px; /* 半身像高度 */
+    object-fit: contain;
+    filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.5));
+}
+
+.dialogue-portrait .emoji-avatar {
+    font-size: 60px;
+    line-height: 1;
+    background: #f1f2f6;
+    border: 3px solid #000;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 3px 3px 0 #000;
+    margin-bottom: 20px; /* Emoji不需要跟邊框重疊 */
+}
+
+.dialogue-content-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.character-meta {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+.character-meta .name {
+    font-weight: 900;
+    font-size: 18px;
+    color: #fff;
+    background: #ff4757;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.action-text {
+    font-size: 0.95rem;
+    color: #a4b0be;
+    font-style: italic;
+    margin-bottom: 8px;
+}
+.speech-text {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #fff200; /* 常規說話為高亮鮮黃色 */
+    line-height: 1.6;
+}
+
+/* 關鍵視覺變更：當對話框為內心獨白時 */
+.dialogue-box.is-thought-node {
+    background: rgba(10, 5, 20, 0.75); /* 對話框變更透明、偏紫暗色 */
+    border-color: #a55eea; /* 邊框轉為內心戲的紫色 */
+}
+/* 獨白節點下的台詞文字變更 */
+.dialogue-box.is-thought-node .speech-text {
+    color: #ced6e0; /* 顏色自動由鮮黃變為暗銀灰色 */
+    font-style: italic; /* 字體自動變斜體，加深心理話的氛圍 */
+    font-weight: normal;
+}
+.dialogue-box.is-thought-node .character-meta .name {
+    background: #a55eea;
+}
+
+/* 特效：臉紅心跳 */
+.blushing-effect {
+    animation: heartbeat 0.6s infinite alternate;
+    box-shadow: 0 0 30px rgba(255, 107, 129, 0.6) !important;
+}
+@keyframes heartbeat {
+    from { transform: translateX(-50%) scale(1); }
+    to { transform: translateX(-50%) scale(1.01); }
+}
+
+.next-indicator {
+    position: absolute;
+    bottom: 10px; right: 15px;
+    color: #fff;
+    animation: bounceDown 1s infinite;
+}
+@keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+}
+
+/* --- Animations --- */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake {
+    animation: shake 0.3s;
+    animation-iteration-count: 1;
+}
+
+.floating-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+    pointer-events: none;
+    z-index: 200;
+    animation: floatUp 2.5s ease-out forwards;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@keyframes floatUp {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    8%   { opacity: 1; transform: translate(-50%, -70%) scale(1.15); }
+    15%  { opacity: 1; transform: translate(-50%, -80%) scale(1); }
+    60%  { opacity: 1; transform: translate(-50%, -80%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -120%) scale(0.9); }
+}
+
+@keyframes popEffect {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.3); filter: brightness(1.5); }
+    100% { transform: scale(0); opacity: 0; filter: brightness(2); }
+}
+
+.block-pop {
+    animation: popEffect 0.25s ease-out forwards !important;
+}
+
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+@keyframes flashWhite {
+    0% { filter: brightness(1) sepia(0) hue-rotate(0deg); }
+    30% { filter: brightness(1.5) sepia(1) hue-rotate(270deg); background-color: #fff; }
+    100% { filter: brightness(1) sepia(0) hue-rotate(0deg); }
+}
+
+.flash-white {
+    animation: flashWhite 0.4s ease-out forwards;
+}
+
+@keyframes beamExplodeH {
+    0% { transform: scaleX(0); opacity: 1; }
+    30% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+}
+
+.prop-line-h {
+    animation: beamExplodeH 0.4s ease-out forwards;
+    transform-origin: left;
+}
+
+@keyframes beamExplodeV {
+    0% { transform: scaleY(0); opacity: 1; }
+    30% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+}
+
+.prop-line-v {
+    animation: beamExplodeV 0.4s ease-out forwards;
+    transform-origin: top;
+}
+
+
+@keyframes crossExplode {
+    0% { transform: scale(0) rotate(45deg); opacity: 1; }
+    50% { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 0; }
+}
+
+.prop-cross {
+    animation: crossExplode 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes spinBlackHole {
+    0% { transform: rotate(0deg) scale(0.9); }
+    100% { transform: rotate(360deg) scale(1.1); }
+}
+
+.black-hole-icon {
+    font-size: 26px;
+    animation: spinBlackHole 2s linear infinite alternate;
+    text-shadow: 0 0 10px #9b59b6, 0 0 20px #8e44ad;
+}
+
+/* --- Avatar Combat Animations --- */
+.anim-attack-right {
+    animation: dash-right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.anim-attack-left {
+    animation: dash-left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.anim-damage {
+    animation: damage-shake 0.3s ease-in-out forwards !important;
+    filter: drop-shadow(0 0 15px rgba(231, 76, 60, 0.8)) brightness(0.7) sepia(1) hue-rotate(-50deg) saturate(3) !important;
+}
+
+@keyframes dash-right {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(40px) scale(1.1); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes dash-left {
+    0% { transform: translateX(0) scale(1); }
+    50% { transform: translateX(-40px) scale(1.1); }
+    100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes damage-shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-12px); }
+    50% { transform: translateX(12px); }
+    75% { transform: translateX(-6px); }
+    100% { transform: translateX(0); }
+}
+
+/* --- Block Hint Animations --- */
+.hint-active {
+    animation: hint-pulse 1s infinite alternate ease-in-out !important;
+    z-index: 5;
+}
+
+@keyframes hint-pulse {
+    0% { transform: scale(1); filter: brightness(1) drop-shadow(0 0 0px transparent); }
+    100% { transform: scale(1.1); filter: brightness(1.3) drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)); }
+}
+
+/* --- Projectile Animations --- */
+.projectile {
+    position: fixed;
+    z-index: 1000;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.5s ease-in;
+    transform-origin: center;
+    margin-left: -15px;
+    margin-top: -15px;
+}
+
+/* --- Intro Comic Overlay --- */
+#intro-comic {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    /* Halftone dot comic background */
+    background-color: #f1c40f;
+    background-image: radial-gradient(#e67e22 15%, transparent 16%),
+                      radial-gradient(#e67e22 15%, transparent 16%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #000;
+    overflow-y: auto;
+    transition: opacity 1s ease-out;
+}
+#intro-comic.hidden {
+    display: none;
+    opacity: 0;
+}
+.comic-panel {
+    background: #ffffff;
+    border: 4px solid #000;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 8px 8px 0px #000;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    animation: comic-panel-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.comic-panel.hidden {
+    display: none;
+}
+.comic-art {
+    font-size: 60px;
+    margin-bottom: 15px;
+    filter: drop-shadow(4px 4px 0px #000);
+}
+.comic-art.fire-eyes {
+    animation: fire-pulse 1s infinite alternate;
+}
+.comic-text {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #000;
+    font-weight: 900;
+}
+.comic-text.monologue p {
+    margin-bottom: 10px;
+    font-style: italic;
+    color: #333;
+    background: #f1f2f6;
+    padding: 10px;
+    border-left: 5px solid #000;
+}
+#next-comic-btn {
+    background: #ff4757;
+    color: white;
+    border: 4px solid #000;
+    padding: 15px 30px;
+    font-size: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 900;
+    box-shadow: 6px 6px 0px #000;
+    transition: all 0.2s;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+#next-comic-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px #000;
+}
+#next-comic-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
+}
+@keyframes comic-panel-pop {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fire-pulse {
+    from { filter: drop-shadow(4px 4px 0px #000) drop-shadow(0 0 10px red); }
+    to { filter: drop-shadow(4px 4px 0px #000) drop-shadow(0 0 30px orange); }
+}
+/* Tutorial Box embedded in dialogue */
+.tutorial-box {
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff;
+    border: 3px solid #000;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 4px 4px 0 #000;
+}
+
+.tutorial-block-demo {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: #fff;
+    border: 3px solid #000;
+    box-shadow: 2px 2px 0 #000;
+    flex-shrink: 0;
+}
+
+.tutorial-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #000;
+    text-shadow: none;
+    font-weight: bold;
+}
+.tutorial-desc strong {
+    color: #e84118;
+    font-size: 16px;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.bomb-timer-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    font-size: 14px;
+    font-weight: 900;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* Armor Break Badge (above player avatar) */
+.armor-break-badge {
+    position: absolute;
+    top: -8px;
+    left: 70px; /* 10px padding + 60px (half avatar width) */
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #55efc4, #00b894);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 184, 148, 0.6), 0 0 12px rgba(85, 239, 196, 0.4);
+    animation: armor-badge-bounce 1.5s infinite ease-in-out;
+    z-index: 20;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.armor-break-badge i {
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+@keyframes armor-badge-bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* Player avatar glow when armor break is active */
+.armor-break-active {
+    filter: drop-shadow(0 0 12px rgba(85, 239, 196, 0.9))
+            drop-shadow(0 0 25px rgba(0, 184, 148, 0.6))
+            brightness(1.15) !important;
+    animation: armor-aura-pulse 1.2s infinite alternate ease-in-out !important;
+}
+
+@keyframes armor-aura-pulse {
+    0%   { filter: drop-shadow(0 0 10px rgba(85, 239, 196, 0.7)) drop-shadow(0 0 20px rgba(0, 184, 148, 0.4)) brightness(1.1); }
+    100% { filter: drop-shadow(0 0 18px rgba(85, 239, 196, 1.0)) drop-shadow(0 0 35px rgba(0, 184, 148, 0.7)) brightness(1.25); }
+}
+
+/* Combo Badge (above Boss avatar) */
+.combo-badge {
+    position: absolute;
+    top: -15px;
+    right: 0px;
+    transform: rotate(5deg);
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 4px 12px;
+    border-radius: 14px;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(241, 196, 15, 0.7), 0 0 15px rgba(230, 126, 34, 0.5);
+    z-index: 20;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    letter-spacing: 1px;
+    animation: combo-badge-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.combo-count {
+    font-size: 20px;
+    margin-right: 2px;
+}
+
+@keyframes combo-badge-pop {
+    0%   { transform: rotate(5deg) scale(0.3); opacity: 0; }
+    50%  { transform: rotate(5deg) scale(1.2); opacity: 1; }
+    100% { transform: rotate(5deg) scale(1); opacity: 1; }
+}
+
+/* Boss avatar pressure effect during combo */
+.combo-pressure {
+    filter: drop-shadow(0 0 10px rgba(231, 76, 60, 0.8))
+            brightness(0.85) sepia(0.3) !important;
+    animation: combo-pressure-shake 0.6s infinite ease-in-out !important;
+}
+
+@keyframes combo-pressure-shake {
+    0%, 100% { transform: scale(1) translateX(0); }
+    25% { transform: scale(0.97) translateX(-3px); }
+    75% { transform: scale(0.97) translateX(3px); }
+}
+
+/* --- Game Over Overlay --- */
+#game-over-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    background-image: radial-gradient(rgba(0,0,0,0.95) 15%, transparent 16%),
+                      radial-gradient(rgba(0,0,0,0.95) 15%, transparent 16%);
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.4s ease-out;
+}
+
+#game-over-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.game-over-box {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 8px 8px 0px #000;
+    border: 4px solid #000;
+    transform: scale(1) rotate(-3deg);
+    animation: gameOverPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 80%;
+}
+
+@keyframes gameOverPop {
+    0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+    50% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+}
+
+.game-over-title {
+    color: #e74c3c;
+    font-size: 36px;
+    font-weight: 900;
+    margin: 0 0 10px 0;
+    text-shadow: 3px 3px 0px #000;
+    text-transform: uppercase;
+}
+
+.game-over-text {
+    color: #000;
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 25px;
+}
+
+.restart-btn {
+    background: #f1c40f;
+    color: #000;
+    border: 4px solid #000;
+    padding: 15px 30px;
+    font-size: 20px;
+    font-weight: 900;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 6px 6px 0px #000;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto;
+    text-transform: uppercase;
+}
+
+.restart-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px #000;
+}
+
+.restart-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+/* --- Promotion / Chapter Transition Overlay --- */
+#promotion-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#promotion-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.promotion-box {
+    background: #ffffff;
+    width: 85%;
+    max-width: 400px;
+    padding: 30px 20px;
+    border: 4px solid #000;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 8px 8px 0px #000;
+    animation: promoPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+@keyframes promoPop {
+    0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.promotion-title {
+    color: #e74c3c;
+    font-size: 24px;
+    font-weight: 900;
+    margin: 0 0 15px 0;
+    text-shadow: 2px 2px 0px #000;
+    text-transform: uppercase;
+}
+
+.promotion-badge {
+    background: #f1c40f;
+    color: #000;
+    padding: 8px 16px;
+    font-size: 20px;
+    font-weight: 900;
+    border: 3px solid #000;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0px #000;
+    margin-bottom: 20px;
+}
+
+.promotion-story-container {
+    background: #f1f2f6;
+    border: 3px solid #000;
+    border-radius: 8px;
+    padding: 15px;
+    width: 90%;
+    min-height: 100px;
+    margin-bottom: 25px;
+    text-align: left;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.promotion-story {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.promotion-next-btn {
+    background: #ff4757;
+    color: #fff;
+    border: 4px solid #000;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: 900;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 6px 6px 0px #000;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.promotion-next-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px #000;
+}
+
+.promotion-next-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+.promotion-next-btn.hidden {
+    display: none;
+}
+
+/* --- Subordinates UI --- */
+.player-character-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.subordinates-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: -10px; /* Pull it slightly into the player avatar */
+    z-index: 10;
+}
+
+.subordinates-container.hidden {
+    display: none;
+}
+
+.subordinate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45px;
+}
+
+.sub-avatar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    background: conic-gradient(#3498db var(--progress, 0%), #bdc3c7 0deg);
+    border-radius: 50%;
+    box-shadow: 1px 1px 0 #000;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.sub-img-container {
+    width: 36px;
+    height: 36px;
+    background: #f1f2f6;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+}
+
+.sub-avatar-wrap:active {
+    transform: scale(0.9);
+}
+
+.sub-avatar-wrap.ready {
+    background: conic-gradient(#f1c40f var(--progress, 100%), #f39c12 0deg);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.8), 1px 1px 0 #000;
+    animation: sub-ready-pulse 1s infinite alternate;
+}
+
+@keyframes sub-ready-pulse {
+    0% { filter: brightness(1); transform: scale(1); }
+    100% { filter: brightness(1.3); transform: scale(1.05); }
+}
+
+.sub-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sub-cooldown-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 16px;
+}
+
+.sub-cooldown-overlay.hidden {
+    display: none;
+}
+
+.sub-ready-overlay {
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #e74c3c;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 1px 4px;
+    border-radius: 4px;
+    border: 1px solid #fff;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.sub-ready-overlay.hidden {
+    display: none;
+}
+
+.sub-name {
+    font-size: 10px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+    margin-top: 1px;
+    white-space: nowrap;
+}
+
+/* --- Landscape Mode (iPad / Horizontal Screens) --- */
+@media screen and (orientation: landscape) and (max-height: 850px) {
+    #game-container {
+        max-width: 1200px;
+        flex-direction: row;
+    }
+    
+    #combat-ui {
+        flex: 1;
+        border-bottom: none;
+        border-right: 2px solid #dcdde1;
+        justify-content: center; /* Center the combat elements vertically */
+    }
+    
+    #grid-container {
+        flex: 1.2;
+    }
+
+    /* Make avatars slightly smaller if height is extremely limited */
+    @media (max-height: 600px) {
+        .sf-avatar {
+            width: 90px;
+            height: 90px;
+        }
+        .hp-bar-container.sf-hp-container {
+            height: 18px;
+        }
+    }
+}
+
+/* Additional Novel Effects */
+.effect-shake {
+    animation: effectShake 0.5s ease-in-out;
+}
+@keyframes effectShake {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-10px, -10px) rotate(-2deg); }
+    20% { transform: translate(10px, 10px) rotate(2deg); }
+    30% { transform: translate(-10px, 5px) rotate(-1deg); }
+    40% { transform: translate(10px, -5px) rotate(1deg); }
+    50% { transform: translate(-5px, 10px) rotate(-2deg); }
+    60% { transform: translate(5px, -10px) rotate(2deg); }
+    70% { transform: translate(-5px, -5px) rotate(-1deg); }
+    80% { transform: translate(5px, 5px) rotate(1deg); }
+    90% { transform: translate(-2px, 2px) rotate(0deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.effect-flash-red {
+    animation: effectFlashRed 0.5s ease-out forwards;
+}
+@keyframes effectFlashRed {
+    0% { filter: brightness(1) sepia(0) hue-rotate(0deg) saturate(1); box-shadow: inset 0 0 0 rgba(255,0,0,0); }
+    20% { filter: brightness(0.8) sepia(1) hue-rotate(-50deg) saturate(3); box-shadow: inset 0 0 100px rgba(255,0,0,0.8); }
+    100% { filter: brightness(1) sepia(0) hue-rotate(0deg) saturate(1); box-shadow: inset 0 0 0 rgba(255,0,0,0); }
+}

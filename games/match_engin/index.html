@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>社畜退散！腦內暴走大作戰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .initial-hidden { display: none !important; }
+    </style>
+    <script src="theme/config.js"></script>
+</head>
+<body>
+
+    <div id="game-container" class="initial-hidden">
+    <!-- Top Area: Combat UI (Street Fighter Style) -->
+    <div id="combat-ui">
+        <!-- Optional: level title overlay -->
+        <div id="level-title" class="level-title"></div>
+        
+        <div class="sf-header">
+            <div class="sf-hp-wrapper player-side">
+                <div class="hp-bar-container sf-hp-container">
+                    <div id="player-hp-bar" class="hp-bar player"></div>
+                    <div id="player-hp-text" class="hp-text">100 / 100</div>
+                </div>
+            </div>
+            
+            <div class="sf-center-badge">
+                <div class="ko-badge">KO</div>
+                <div id="boss-timer" class="boss-timer">3</div>
+            </div>
+            
+            <div class="sf-hp-wrapper boss-side">
+                <div class="hp-bar-container sf-hp-container">
+                    <div id="boss-hp-bar" class="hp-bar boss"></div>
+                    <div id="boss-hp-text" class="hp-text">100 / 100</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sf-names">
+            <div class="fighter-name player-name">打工人</div>
+            <div class="fighter-name boss-name" id="boss-name-display">Boss</div>
+        </div>
+
+        <div class="sf-avatars">
+            <div class="player-character-group">
+                <img src="https://api.dicebear.com/7.x/micah/svg?seed=Felix&backgroundColor=transparent" class="sf-avatar player-avatar" alt="Player">
+                
+                <!-- Subordinates System UI -->
+                <div id="subordinates-ui" class="subordinates-container hidden">
+                    <div class="subordinate" id="sub-1">
+                        <div class="sub-avatar-wrap" id="sub-1-wrap" onclick="window.useSubordinateSkill(1)">
+                            <div class="sub-img-container">
+                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=ZGen&backgroundColor=transparent" class="sub-img">
+                                <div class="sub-cooldown-overlay hidden" id="sub-1-cd"><i class="fa-solid fa-lock"></i></div>
+                            </div>
+                            <div class="sub-ready-overlay hidden" id="sub-1-ready">READY</div>
+                        </div>
+                        <div class="sub-name" id="sub-1-name">Z世代新人</div>
+                    </div>
+                    <div class="subordinate" id="sub-2">
+                        <div class="sub-avatar-wrap" id="sub-2-wrap" onclick="window.useSubordinateSkill(2)">
+                            <div class="sub-img-container">
+                                <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Senior&backgroundColor=transparent" class="sub-img">
+                                <div class="sub-cooldown-overlay hidden" id="sub-2-cd"><i class="fa-solid fa-lock"></i></div>
+                            </div>
+                            <div class="sub-ready-overlay hidden" id="sub-2-ready">READY</div>
+                        </div>
+                        <div class="sub-name" id="sub-2-name">資深組員</div>
+                    </div>
+                </div>
+            </div>
+
+            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Boss&backgroundColor=transparent" class="sf-avatar boss-avatar" alt="Boss">
+        </div>
+    </div>
+
+    <!-- Middle Area: Match-3 Grid -->
+    <div id="grid-container">
+        <!-- Grid cells will be generated here by JS -->
+    </div>
+
+    <div id="dialogue-overlay" class="hidden">
+        <!-- Layer 1: 物理背景層 (常態環境圖片) -->
+        <div class="background-layer" style="background-image: url('assets/bg/office_night.png');"></div>
+
+        <!-- Layer 2: 角色立繪層 (居中底部對齊，顯示去背半身像) -->
+        <div class="stand-painting-layer">
+            <img id="active-stand-painting" src="" alt="角色立繪" style="display: none;">
+        </div>
+
+        <!-- Layer 3: 滿版福利 CG 層 (平時隱藏，高潮或過場故事時覆蓋下方一切) -->
+        <div class="cg-layer" style="display: none;">
+            <img id="cg-canvas" src="" alt="Special CG">
+        </div>
+
+        <!-- Layer 4: 中央場景/旁白描述區 (純旁白模式時在畫面正中央顯示大字) -->
+        <div id="narration-overlay" style="display: none;"></div>
+
+        <!-- Layer 5: 最上層的底部對話框 -->
+        <div id="dialogue-box" class="dialogue-box">
+            <!-- 獨立的左上角頭像 (可支援半身圖或 Emoji) -->
+            <div id="char-avatar" class="dialogue-portrait"></div>
+            
+            <div class="dialogue-content-wrapper">
+                <div class="character-meta">
+                    <span id="char-name" class="name"></span>
+                </div>
+            
+            <!-- 肢體動作與台詞對話容器 -->
+            <div id="display-action" class="action-text"></div>
+            <div id="display-text" class="speech-text"></div>
+            </div>
+            
+            <div class="next-indicator">▼</div>
+        </div>
+    </div>
+
+    <div id="game-over-overlay" class="hidden">
+        <div class="game-over-box">
+            <h2 class="game-over-title">精神崩潰！</h2>
+            <p class="game-over-text">你被擊敗了... 社畜的悲歌還未結束。</p>
+            <button id="restart-btn" class="restart-btn">
+                <i class="fa-solid fa-rotate-right"></i> 重新開始
+            </button>
+        </div>
+    </div>
+
+    <!-- Promotion / Chapter Transition Overlay -->
+    <div id="promotion-overlay" class="hidden">
+        <div class="promotion-box">
+            <h2 id="promotion-title" class="promotion-title">【職位晉升通知】</h2>
+            <div id="promotion-badge" class="promotion-badge">🎖️ 正式組員</div>
+            <div class="promotion-story-container">
+                <div id="promotion-story" class="promotion-story"></div>
+            </div>
+            <button id="promotion-next-btn" class="promotion-next-btn hidden">
+                接受任命 <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="data/levels.js"></script>
+<script src="theme/intro.js"></script>
+<script src="engine/intro-manager.js"></script>
+<script src="engine/audio-manager.js"></script>
+<script src="engine/dialog-manager.js"></script>
+<script src="engine/game-state.js"></script>
+<script src="engine/match-engine.js"></script>
+<script src="engine/main.js"></script>
+<script>
+    document.title = GAME_CONFIG.title;
+    document.querySelector('.game-over-title').innerText = GAME_CONFIG.gameOverTitle;
+    document.querySelector('.game-over-text').innerText = GAME_CONFIG.gameOverText;
+</script>
+</body>
+</html>

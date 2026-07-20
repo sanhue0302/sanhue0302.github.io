@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a0e4e" />
+      <stop offset="50%" stop-color="#812255" />
+      <stop offset="100%" stop-color="#cf5055" />
+    </linearGradient>
+    <linearGradient id="building" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#111" />
+      <stop offset="100%" stop-color="#2a2a35" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Sky -->
+  <rect width="800" height="400" fill="url(#sky)" />
+  
+  <!-- Stars / City Lights far away -->
+  <circle cx="100" cy="150" r="1.5" fill="#fff" opacity="0.8" />
+  <circle cx="300" cy="80" r="1.5" fill="#fff" opacity="0.6" />
+  <circle cx="500" cy="200" r="2" fill="#fff" opacity="0.9" />
+  <circle cx="700" cy="120" r="1.5" fill="#fff" opacity="0.5" />
+  
+  <!-- Background Buildings -->
+  <rect x="50" y="200" width="80" height="200" fill="url(#building)" />
+  <rect x="200" y="150" width="120" height="250" fill="url(#building)" />
+  <rect x="400" y="220" width="90" height="180" fill="url(#building)" />
+  <rect x="600" y="100" width="150" height="300" fill="url(#building)" />
+  
+  <!-- Building Windows -->
+  <rect x="220" y="170" width="15" height="15" fill="#f1c40f" filter="url(#glow)" />
+  <rect x="250" y="170" width="15" height="15" fill="#f1c40f" filter="url(#glow)" />
+  <rect x="220" y="210" width="15" height="15" fill="#f1c40f" filter="url(#glow)" />
+  <rect x="280" y="250" width="15" height="15" fill="#f1c40f" filter="url(#glow)" />
+  
+  <rect x="630" y="130" width="20" height="20" fill="#e74c3c" filter="url(#glow)" />
+  <rect x="680" y="200" width="20" height="20" fill="#f1c40f" filter="url(#glow)" />
+  <rect x="630" y="270" width="20" height="20" fill="#3498db" filter="url(#glow)" />
+  
+  <!-- Desk Area in Foreground -->
+  <path d="M0 300 L800 300 L800 400 L0 400 Z" fill="#2c3e50" opacity="0.9" />
+  <path d="M-50 320 L850 320 L850 450 L-50 450 Z" fill="#34495e" opacity="0.95" />
+  
+  <!-- Computer Monitor -->
+  <rect x="350" y="240" width="100" height="70" rx="5" fill="#1a1a2e" stroke="#000" stroke-width="4" />
+  <rect x="355" y="245" width="90" height="60" fill="#0f3460" />
+  <!-- Monitor screen glow -->
+  <rect x="355" y="245" width="90" height="60" fill="#439A97" opacity="0.3" filter="url(#glow)" />
+  <!-- Monitor Stand -->
+  <rect x="390" y="310" width="20" height="15" fill="#1a1a2e" />
+  <rect x="375" y="325" width="50" height="5" fill="#1a1a2e" />
+  
+  <!-- Coffee Cup -->
+  <path d="M 280 300 L 285 325 L 305 325 L 310 300 Z" fill="#ecf0f1" />
+  <!-- Coffee smoke -->
+  <path d="M 290 295 Q 295 285 290 275 T 295 260" fill="none" stroke="#fff" stroke-width="2" opacity="0.5" />
+  
+  <!-- Papers on desk -->
+  <rect x="480" y="315" width="60" height="15" fill="#fff" transform="skewX(-45)" opacity="0.8" />
+  <rect x="490" y="310" width="60" height="15" fill="#f1c40f" transform="skewX(-30)" opacity="0.9" />
+  
+  <!-- Office Window Frames (giving the interior feeling) -->
+  <rect x="0" y="0" width="800" height="10" fill="#111" />
+  <rect x="0" y="0" width="10" height="400" fill="#111" />
+  <rect x="790" y="0" width="10" height="400" fill="#111" />
+  <!-- Window mullions -->
+  <rect x="250" y="0" width="10" height="300" fill="#111" />
+  <rect x="550" y="0" width="10" height="300" fill="#111" />
+  <rect x="0" y="100" width="800" height="10" fill="#111" />
+  
+</svg>
