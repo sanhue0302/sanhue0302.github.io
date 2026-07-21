@@ -41,19 +41,25 @@ class MergeGameCore {
                 <div class="score-box" style="background: rgba(255, 255, 255, 0.9); padding: 8px 20px; border-radius: 25px; font-size: 22px; font-weight: bold; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
                     Score: <span id="mg-score">0</span>
                 </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 15px; pointer-events: auto;">
-                    <button id="mg-in-game-restart-btn" style="background: rgba(255, 255, 255, 0.95); border: none; width: 48px; height: 48px; border-radius: 50%; color: #F42E35; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; transition: transform 0.1s; flex-shrink: 0;">
-                        <span class="material-icons" style="font-size: 26px;">refresh</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px; pointer-events: auto;">
+                    <button id="mg-in-game-restart-btn" title="重新開始" style="background: rgba(255, 255, 255, 0.95); border: none; width: 44px; height: 44px; border-radius: 50%; color: #F42E35; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; transition: transform 0.1s; flex-shrink: 0;">
+                        <span class="material-icons" style="font-size: 24px;">refresh</span>
                     </button>
-                    <div style="background: rgba(255, 255, 255, 0.85); border-radius: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 10px 0; width: 48px; display: flex; justify-content: center; align-items: center;">
+                    <button id="mg-in-game-leaderboard-btn" title="排行榜" style="background: rgba(255, 255, 255, 0.95); border: none; width: 44px; height: 44px; border-radius: 50%; color: #FF7043; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; transition: transform 0.1s; flex-shrink: 0;">
+                        <span class="material-icons" style="font-size: 24px;">emoji_events</span>
+                    </button>
+                    <div style="background: rgba(255, 255, 255, 0.85); border-radius: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 10px 0; width: 44px; display: flex; justify-content: center; align-items: center;">
                         <canvas id="mg-next-preview-canvas" width="40" height="95" style="display: block;"></canvas>
                     </div>
                 </div>
             </div>
-            <div id="game-over" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 20; pointer-events: auto;">
-                <h1 style="font-size: 48px; margin: 0 0 20px 0; color: ${this.config.theme.background};">Game Over!</h1>
-                <p style="font-size: 24px; margin: 0 0 30px 0;">Final Score: <span id="mg-final-score">0</span></p>
-                <button id="mg-restart-btn" style="padding: 15px 40px; font-size: 20px; font-weight: bold; background: #F42E35; color: white; border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">Play Again</button>
+            <div id="game-over" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); display: none; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 20; pointer-events: auto;">
+                <h1 style="font-size: 44px; margin: 0 0 15px 0; color: ${this.config.theme.background}; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">Game Over!</h1>
+                <p style="font-size: 22px; margin: 0 0 25px 0;">Final Score: <span id="mg-final-score">0</span></p>
+                <div style="display: flex; flex-direction: column; gap: 12px; width: 80%; max-width: 260px;">
+                    <button id="mg-restart-btn" style="padding: 12px 24px; font-size: 18px; font-weight: bold; background: #F42E35; color: white; border: none; border-radius: 25px; cursor: pointer; box-shadow: 0 4px 10px rgba(244,46,53,0.3);">Play Again</button>
+                    <button id="mg-view-leaderboard-btn" style="padding: 12px 24px; font-size: 16px; font-weight: bold; background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.8); border-radius: 25px; cursor: pointer; backdrop-filter: blur(4px);">🏆 查看排行榜</button>
+                </div>
             </div>
         `;
 
@@ -67,13 +73,43 @@ class MergeGameCore {
         this.container.style.overflow = 'hidden';
         this.container.style.touchAction = 'none';
 
+        if (typeof LeaderboardSystem !== 'undefined') {
+            this.leaderboard = new LeaderboardSystem({
+                gameId: this.config.gameId || 'suika',
+                gameName: this.config.gameName || '合成大西瓜',
+                title: this.config.leaderboardTitle || '🏆 西瓜排行榜',
+                scoreUnit: this.config.scoreUnit || '分',
+                theme: (this.config.theme && this.config.theme.leaderboardTheme) || 'light',
+                firebaseConfig: this.config.firebaseConfig || null
+            });
+        }
+
         const restartBtn = this.container.querySelector('#mg-restart-btn');
-        restartBtn.addEventListener('click', () => this.resetGame());
+        if (restartBtn) restartBtn.addEventListener('click', () => this.resetGame());
         
         const inGameRestartBtn = this.container.querySelector('#mg-in-game-restart-btn');
-        if (inGameRestartBtn) {
-            inGameRestartBtn.addEventListener('click', () => this.resetGame());
-        }
+        if (inGameRestartBtn) inGameRestartBtn.addEventListener('click', () => this.resetGame());
+
+        const openLeaderboard = () => {
+            if (this.leaderboard) {
+                this.leaderboard.show({
+                    score: this.isGameOver ? this.score : null,
+                    extra: {
+                        level: (this.currentLevel !== undefined) ? (this.currentLevel + 1) : 1,
+                        avatar: '🍉'
+                    },
+                    onRestart: () => this.resetGame()
+                });
+            } else {
+                alert('排行榜元件尚未就緒。');
+            }
+        };
+
+        const inGameLeaderboardBtn = this.container.querySelector('#mg-in-game-leaderboard-btn');
+        if (inGameLeaderboardBtn) inGameLeaderboardBtn.addEventListener('click', openLeaderboard);
+
+        const viewLeaderboardBtn = this.container.querySelector('#mg-view-leaderboard-btn');
+        if (viewLeaderboardBtn) viewLeaderboardBtn.addEventListener('click', openLeaderboard);
     }
 
     initPhysics() {
@@ -389,6 +425,21 @@ class MergeGameCore {
         Matter.Runner.stop(this.runner);
         this.container.querySelector('#game-over').style.display = 'flex';
         this.container.querySelector('#mg-final-score').innerText = this.score;
+
+        if (this.leaderboard) {
+            setTimeout(() => {
+                if (this.isGameOver) {
+                    this.leaderboard.show({
+                        score: this.score,
+                        extra: {
+                            level: (this.currentLevel !== undefined) ? (this.currentLevel + 1) : 1,
+                            avatar: '🍉'
+                        },
+                        onRestart: () => this.resetGame()
+                    });
+                }
+            }, 600);
+        }
     }
 
     resetGame() {
