@@ -1,0 +1,29 @@
+/* Sakura Story Custom UI Theme (Romantic Soft Pink) */
+.theme-sakura #textbox {
+  background: linear-gradient(135deg, rgba(255, 240, 245, 0.94), rgba(255, 215, 225, 0.96)) !important;
+  border: 2px solid rgba(255, 128, 171, 0.6) !important;
+  box-shadow: 0 12px 36px rgba(255, 64, 129, 0.25) !important;
+}
+
+.theme-sakura #dialogue-text {
+  color: #4a1525 !important;
+  font-weight: 500;
+}
+
+.theme-sakura #speaker-badge {
+  background: linear-gradient(135deg, #ff4081, #ff80ab) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 64, 129, 0.4) !important;
+}
+
+.theme-sakura .choice-button {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 225, 235, 0.95)) !important;
+  border: 1.5px solid #ff80ab !important;
+  color: #880e4f !important;
+}
+
+.theme-sakura .choice-button:hover {
+  background: linear-gradient(135deg, #ff4081, #ff80ab) !important;
+  color: #ffffff !important;
+  border-color: #ff4081 !important;
+}

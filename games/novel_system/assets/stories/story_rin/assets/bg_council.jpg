@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="councilWall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#councilWall)"/>
+  <!-- Grand Window -->
+  <rect x="560" y="80" width="800" height="550" fill="#020617" stroke="#94a3b8" stroke-width="12"/>
+  <circle cx="960" cy="300" r="140" fill="#f8fafc" opacity="0.3"/>
+  <!-- Large Meeting Table -->
+  <polygon points="200,800 1720,800 1920,1080 0,1080" fill="#0f172a"/>
+  <rect x="700" y="750" width="520" height="80" fill="#1e1b4b" rx="8"/>
+  <text x="960" y="800" font-family="'Noto Sans TC', sans-serif" font-weight="700" font-size="28" fill="#818cf8" text-anchor="middle">學生會執行部</text>
+</svg>

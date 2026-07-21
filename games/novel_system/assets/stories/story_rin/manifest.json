@@ -1,0 +1,10 @@
+{
+  "id": "story_rin",
+  "title": "月夜下的約定",
+  "author": "劇本組",
+  "cover": "assets/stories/story_rin/assets/cover.jpg",
+  "description": "高冷學生會長凜的秘密特訓與隱藏心意...",
+  "endingsCount": 3,
+  "themeClass": "theme-rin",
+  "themeCss": "assets/stories/story_rin/theme.css"
+}
