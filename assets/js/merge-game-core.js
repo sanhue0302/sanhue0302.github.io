@@ -75,9 +75,9 @@ class MergeGameCore {
 
         if (typeof LeaderboardSystem !== 'undefined') {
             this.leaderboard = new LeaderboardSystem({
-                gameId: this.config.gameId || 'suika',
-                gameName: this.config.gameName || '合成大西瓜',
-                title: this.config.leaderboardTitle || '🏆 西瓜排行榜',
+                gameId: this.config.gameId || 'merge_game',
+                gameName: this.config.gameName || '合成遊戲',
+                title: this.config.leaderboardTitle || '🏆 遊戲排行榜',
                 scoreUnit: this.config.scoreUnit || '分',
                 theme: (this.config.theme && this.config.theme.leaderboardTheme) || 'light',
                 firebaseConfig: this.config.firebaseConfig || null

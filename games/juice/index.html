@@ -30,16 +30,28 @@
             box-sizing: border-box;
         }
     </style>
+    <link rel="stylesheet" href="../../assets/css/leaderboard-system.css">
 </head>
 <body>
 
 <div id="game-container"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<!-- Firebase SDK (全網線上排行榜用) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="../../assets/js/firebase-config.js"></script>
+
+<script src="../../assets/js/leaderboard-system.js"></script>
 <script src="../../assets/js/merge-game-core.js"></script>
-<script src="../../assets/js/juice-game.js"></script>
+<script src="juice-game.js"></script>
 <script>
     const juiceConfig = {
+        gameId: "juice",
+        gameName: "果汁特調",
+        leaderboardTitle: "🍹 榨汁榮譽榜",
+        scoreUnit: "分",
+        firebaseConfig: (typeof GLOBAL_FIREBASE_CONFIG !== 'undefined' && GLOBAL_FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY") ? GLOBAL_FIREBASE_CONFIG : null,
         theme: {
             background: "transparent", // handled by CSS now
             wallColor: "rgba(255, 255, 255, 0)", // Invisible physical walls

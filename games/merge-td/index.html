@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>合成塔防 (Merge Tower Defense)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../../assets/css/leaderboard-system.css">
+</head>
+<body>
+
+<div id="game-container">
+    <!-- 頂部資訊條 -->
+    <div id="top-bar">
+        <div class="info-item">
+            <span>🏆</span>
+            <span id="val-score">0</span>
+        </div>
+        <div class="info-item">
+            <span>💰</span>
+            <span id="val-coins">150</span>
+        </div>
+        <div class="info-item">
+            <span>🌊 波次:</span>
+            <span id="val-wave">1</span>
+        </div>
+        <div class="info-item">
+            <span>🏰</span>
+            <div class="hp-container">
+                <div id="hp-bar-inner" class="hp-bar"></div>
+            </div>
+        </div>
+        <button id="btn-pause" class="btn-pause-icon" aria-label="Pause">⏸️</button>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="game-toast">提示訊息</div>
+
+    <!-- 主遊戲 Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- 底部控制按鈕 -->
+    <div id="bottom-controls">
+        <button id="btn-summon" class="btn-game btn-summon">
+            <span>✨ 召喚角色 (<span id="summon-cost">50</span>💰)</span>
+        </button>
+        <button id="btn-start-wave" class="btn-game btn-wave">
+            <span>▶️ 開始下一波</span>
+        </button>
+    </div>
+</div>
+
+<!-- 排行榜 SDK & Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="../../assets/js/firebase-config.js"></script>
+<script src="../../assets/js/leaderboard-system.js"></script>
+
+<!-- 遊戲核心與渲染 Engine -->
+<script src="merge-td-core.js"></script>
+<script src="merge-td-render.js"></script>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        // 初始化 Leaderboard System
+        const leaderboard = new LeaderboardSystem({
+            gameId: 'merge-td',
+            gameName: '合成塔防',
+            title: '🛡️ 塔防榮譽榜',
+            scoreUnit: '分',
+            theme: 'dark',
+            firebaseConfig: window.firebaseConfig || null
+        });
+
+        // 初始化遊戲核心與渲染
+        const canvas = document.getElementById('game-canvas');
+        const core = new MergeTDCore();
+        const render = new MergeTDRender(canvas, core, leaderboard);
+    });
+</script>
+
+</body>
+</html>

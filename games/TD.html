@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>合成塔防融合遊戲</title>
+    <style>
+        /* --------------------------- 基本樣式與佈局 ------------------------- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 850px;
+            background-color: #fff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 遊戲畫面分割線 */
+        .game-section {
+            padding: 15px;
+            border: solid #ccc;
+            box-sizing: border-box;
+        }
+
+        /* --------------------------- 上半部：塔防地圖 ------------------------- */
+        #td-map {
+            height: 50%; /* 地圖佔據一半高度 */
+            background-color: #e8f4e8; /* 草地色調 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        #map-visual {
+            /* 簡化六角形視覺，使用可點擊的槽位模擬區域 */
+            background-image: repeating-linear-gradient(0deg, rgba(0, 255, 0,.1) 0px, rgba(0, 255, 0,.1) 10px);
+            padding: 20px;
+            display: flex;
+            gap: 15px; /* 模擬路徑與放置點之間的間隔 */
+            align-items: flex-start;
+        }
+
+        .path {
+            /* 敵人行進路線 - 不可放置 */
+            background-color: #d3a98e; /* 土路色 */
+            width: 150px;
+            padding: 20px 10px;
+            border-radius: 5px;
+        }
+
+        .placement-slot {
+            /* 可放置防禦點的槽位 */
+            width: 120px;
+            height: 80px;
+            background-color: #b3e5fc; /* 放置點的顏色 */
+            border: 2px dashed #039be6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        /* 當拖曳目標進入時的視覺效果 */
+        .drag-over {
+            border: 3px solid #ff6b00;
+            background-color: rgba(255, 107, 0, 0.1);
+        }
+
+        /* --------------------------- 下半部：合成區 ------------------------- */
+        #synthesis-area {
+            height: 50%; /* 合成區佔據另一半高度 */
+            background-color: #fef9e8; /* 工作檯色調 */
+        }
+
+        #synthesis-pile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* 個體角色卡牌 */
+        .character-card {
+            width: 100px;
+            height: 150px;
+            background-color: #8a2be2; /* 初代顏色 */
+            border: 3px solid #4b0082;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            cursor: grab;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+        }
+
+        /* 合成狀態顯示 */
+        .character-card[data-level="1"] { background-color: #8a2be2; }
+        .character-card[data-level="2"] { background-color: #9b59b6; }
+        .character-card[data-level="3"] { background-color: #8e44ad; }
+        .character-card[data-level="4"] { background-color: #9c27b0; }
+        .character-card[data-level="5"] { background-color: #c0392b; border-width: 4px; } /* 等級5達到巔峰 */
+
+        /* 當角色被拖曳時的視覺效果 */
+        .dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+
+        /* 拖曳落點樣式 */
+        .drop-target {
+            border: 3px dashed green;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- ==================== 上半部: 塔防地圖 ==================== -->
+    <div id="td-map" class="game-section">
+        <h2>🛡️ 塔防地圖 (Top View)</h2>
+        <div id="map-visual">
+            <!-- 敵人行進路線 (不可放置) -->
+            <div class="path">
+                <h3>敵軍行進路線</h3>
+                <p>波次：第 1 波 (3名敵軍)</p>
+                <div style="height: 20px; background-color: #ccc;"></div>
+                <p>敵人正在行進...</p>
+            </div>
+
+            <!-- 可放置防禦點 -->
+            <div>
+                <h4>陣地部署區</h4>
+                <div id="slot-1" class="placement-slot drop-target">
+                    空閒槽點 🟢
+                </div>
+            </div>
+
+            <div>
+                <h4>陣地部署區</h4>
+                <div id="slot-2" class="placement-slot drop-target">
+                    空閒槽點 🟢
+                </div>
+            </div>
+
+            <div>
+                <h4>陣地部署區</h4>
+                <div id="slot-3" class="placement-slot drop-target">
+                    空閒槽點 🟢
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== 下半部: 合成區 ==================== -->
+    <div id="synthesis-area" class="game-section">
+        <h2>✨ 合成區 (Merge Pile)</h2>
+        <div id="synthesis-pile" class="drop-target">
+            <!-- 這裡將會動態生成角色卡牌 -->
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ==================== 遊戲數據與狀態管理 ====================
+    const MAX_LEVEL = 5;
+    const CHARACTER_TYPES = [
+        '步兵', '弓箭手', '法師', '潛行者', '治療師'
+    ];
+
+    // 遊戲狀態
+    let currentUnits = []; // 當前堆疊中的所有單位物件
+    const synthesisPile = document.getElementById('synthesis-pile');
+
+    // 獲取所有可合成的卡牌元件
+    let draggableCards = [];
+
+    // =============== 輔助函數：創建並渲染角色卡牌 ===============
+    /**
+     * @param {string} type - 角色的類型 (e.g., '步兵')
+     * @param {number} level - 角色的等級 (1-5)
+     * @returns {HTMLElement} - 可拖曳的卡牌元素
+     */
+    function createCharacterCardElement(type, level) {
+        const card = document.createElement('div');
+        card.className = 'character-card';
+        card.setAttribute('draggable', 'true');
+        card.dataset.type = type;
+        card.dataset.level = level;
+
+        // 顯示名稱和等級資訊
+        let display_name = type;
+        if (level > 1) {
+            display_name += ` Lv.${level}`;
+        } else {
+            display_name = type; // 等級1只有類型名稱
+        }
+
+        card.innerHTML = `<strong>${display_name}</strong><br><small>種類: ${type}</small>`;
+        return card;
+    }
+
+    /**
+     * 將遊戲陣列轉換為可見的DOM元素並顯示在合成區
+     */
+    function renderSynthesisPile() {
+        synthesisPile.innerHTML = ''; // 清空現有內容
+        draggableCards = [];
+
+        currentUnits.forEach(unit => {
+            const cardElement = createCharacterCardElement(unit.type, unit.level);
+            synthesisPile.appendChild(cardElement);
+            draggableCards.push(cardElement); // 存入可拖曳的引用
+        });
+    }
+
+    // ==================== 核心機制：合成與拖曳 ===============
+
+    /**
+     * 當角色被從堆疊中拖出時觸發的事件 (DragStart)
+     */
+    function handleDragStart(e) {
+        // 複製數據，而不是移動 DOM 元素本身
+        const cardElement = e.target;
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            type: cardElement.dataset.type,
+            level: parseInt(cardElement.dataset.level)
+        }));
+        // 添加視覺效果：當正在拖曳時變暗
+        setTimeout(() => {
+            cardElement.classList.add('dragging');
+        }, 0);
+    }
+
+    /**
+     * 當拖曳操作開始時，清理視覺效果
+     */
+    function handleDragEnd(e) {
+        e.target.classList.remove('dragging');
+    }
+
+    /**
+     * 處理目標區域被進入時的視覺回饋 (DragOver)
+     */
+    function handleDragOver(e) {
+        e.preventDefault(); // 這是讓 Drop 事件觸發的關鍵
+    }
+
+    /**
+     * 當目標區域被離開時清理視覺回饋
+     */
+    function handleDragLeave(e) {
+        // 移除所有拖曳過渡類別
+        if (e.target.classList.contains('drag-target')) {
+            e.target.classList.remove('drag-over');
+        }
+    }
+
+    /**
+     * 當角色被放置到目標區域時觸發的事件 (Drop)
+     * @param {HTMLElement} targetElement - 被放置上的元素
+     */
+    function handleDrop(e) {
+        e.preventDefault();
+        const target = e.currentTarget;
+        target.classList.remove('drag-over');
+
+        const dataString = e.dataTransfer.getData('text/plain');
+        if (!dataString) return;
+
+        const draggedData = JSON.parse(dataString);
+        const { type, level } = draggedData;
+
+        // --- 檢查目標類型並執行動作 ---
+
+        if (target.id === 'synthesis-pile') {
+            handleDropOnSynthesis(type, level);
+        } else if (target.classList.contains('placement-slot')) {
+            handleDropOnMap(type, level);
+        }
+    }
+
+
+    // ==================== 遊戲邏輯處理函數 ====================
+
+    /**
+     * 處理合成區的放置事件 (核心邏輯)
+     */
+    function handleDropOnSynthesis(type, level) {
+        // 由於我們是先從當前列表裡拖出，後又打算將新項目推入列表。
+        // 為了模擬合成遊戲的機制：我們需要兩個相同等級的角色來升級。
+
+        // 簡易合成邏輯：如果這是第一個類型，就把它當作基數。
+        // 由於瀏覽器無法完美捕捉「拖入的這塊」是否已經存在於列表中，
+        // 我們採用最簡潔的方式：兩次相同行為 = 合成一次。
+
+        if (currentUnits.length === 0) {
+             // 第零個進入，成為第一個。
+            currentUnits.push({ type: type, level: level });
+        } else if (currentUnits[currentUnits.length - 1].type === type && currentUnits[currentUnits.length - 1].level === level) {
+            // 如果尾端是相同的類型和等級，則合成！
+            if (level < MAX_LEVEL) {
+                // 升級！類型不變，等級增加
+                const newLevel = level + 1;
+                currentUnits[currentUnits.length - 1].level = newLevel; // 更新最後一個
+                // 新增一個，使其達到合成的數量（視覺上是兩塊擠壓成一塊）
+                // 在這個MVP中，我們讓它只是在那個位置上達到新等級。
+                alert(`成功合成！晉升到 ${newLevel} 等級！`);
+
+            } else {
+                alert("等級已達極限 Lv.5，無法再合成！");
+            }
+        } else {
+            // 不同種類或等級，則另一個單位加入堆疊（這是為了湊數）
+            currentUnits.push({ type: type, level: level });
+        }
+
+        // 更新畫面
+        renderSynthesisPile();
+    }
+
+
+    /**
+     * 處理地圖的放置事件 (TD)
+     */
+    function handleDropOnMap(type, level) {
+        const slots = document.querySelectorAll('.placement-slot');
+        let foundSlot = null;
+
+        // 找到第一個可用的槽位
+        slots.forEach(slot => {
+            if (slot.textContent.includes('空閒')) {
+                foundSlot = slot;
+            }
+        });
+
+        if (foundSlot) {
+            // 實際的遊戲中，這會把該單位的數據存入 Slot 的狀態裡。
+            alert(`[地圖部署] 將 ${type} Lv.${level} 放置到防禦點！`);
+            foundSlot.textContent = `⚔️ ${type} Lv.${level} 部署中`;
+            // 在實際遊戲中，還需要將該單位從 currentUnits 中移除。
+        } else {
+            alert("所有防禦點已滿！");
+        }
+    }
+
+
+    // ==================== 初始化與事件綁定 ===============
+
+    function initializeGame() {
+        // 1. 初始化：根據要求，初始有3個角色在合成區出現 (假設都是Lv.1)
+        currentUnits = [
+            { type: '步兵', level: 1 },
+            { type: '步兵', level: 1 }, // 這兩個會合成第一個Lv.2
+            { type: '弓箭手', level: 1 }  // 這個新的角色進入列表
+        ];
+        renderSynthesisPile();
+
+        // 2. 為可拖曳的元素綁定事件
+        const pileElement = document.getElementById('synthesis-pile');
+        const mapSlots = document.querySelectorAll('.placement-slot');
+
+        // 綁定合成區 (拖入目標)
+        pileElement.addEventListener('dragover', handleDragOver);
+        pileElement.addEventListener('dragleave', handleDragLeave);
+        pileElement.addEventListener('drop', handleDrop);
+
+        // 為地圖槽位綁定事件 (拖入目標)
+        mapSlots.forEach(slot => {
+            slot.addEventListener('dragover', handleDragOver);
+            slot.addEventListener('dragleave', handleDragLeave);
+            slot.addEventListener('drop', handleDrop);
+        });
+
+        // 3. 為所有卡牌元素綁定 DragStart/DragEnd 事件
+        document.querySelectorAll('.character-card').forEach(card => {
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+        });
+
+        // 初始渲染 (雖然剛初始化就有了數據，但這是確保綁定的步驟)
+        renderSynthesisPile(); 
+
+        console.log("遊戲初始化完成！您可以拖曳卡牌進行合成和部署。");
+    }
+
+    // 啟動遊戲
+    initializeGame();
+
+</script>
+
+</body>
+</html>

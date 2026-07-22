@@ -1,0 +1,402 @@
+/* ==========================================================================
+   LeaderboardSystem - Universal Leaderboard SDK Stylesheet
+   Supports Light, Dark, and Glassmorphism themes with CSS Custom Variables
+   ========================================================================== */
+
+:root {
+    --lbs-primary-color: #FF7043;
+    --lbs-primary-hover: #F4511E;
+    --lbs-accent-color: #FFB300;
+    --lbs-bg-overlay: rgba(0, 0, 0, 0.45);
+    --lbs-bg-modal: rgba(255, 255, 255, 0.95);
+    --lbs-bg-card: rgba(255, 255, 255, 0.7);
+    --lbs-border-color: rgba(0, 0, 0, 0.08);
+    --lbs-text-main: #2C3E50;
+    --lbs-text-muted: #7F8C8D;
+    --lbs-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji';
+    --lbs-border-radius: 20px;
+    --lbs-box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    --lbs-blur: 16px;
+}
+
+/* Theme Variant: Dark */
+.lbs-modal.lbs-theme-dark {
+    --lbs-bg-modal: rgba(28, 28, 35, 0.95);
+    --lbs-bg-card: rgba(255, 255, 255, 0.06);
+    --lbs-border-color: rgba(255, 255, 255, 0.1);
+    --lbs-text-main: #F0F2F5;
+    --lbs-text-muted: #A0AAB5;
+}
+
+/* Theme Variant: Glass */
+.lbs-modal.lbs-theme-glass {
+    --lbs-bg-modal: rgba(255, 255, 255, 0.75);
+    --lbs-bg-card: rgba(255, 255, 255, 0.4);
+    --lbs-border-color: rgba(255, 255, 255, 0.5);
+    --lbs-box-shadow: 0 15px 35px rgba(31, 38, 135, 0.2);
+}
+
+/* Modal Container Overlay */
+.lbs-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--lbs-bg-overlay);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.lbs-overlay.lbs-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Main Modal Card */
+.lbs-modal {
+    width: 100%;
+    max-width: 420px;
+    background: var(--lbs-bg-modal);
+    backdrop-filter: blur(var(--lbs-blur));
+    -webkit-backdrop-filter: blur(var(--lbs-blur));
+    border-radius: var(--lbs-border-radius);
+    border: 1px solid var(--lbs-border-color);
+    box-shadow: var(--lbs-box-shadow);
+    color: var(--lbs-text-main);
+    font-family: var(--lbs-font-family);
+    overflow: hidden;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+}
+
+.lbs-overlay.lbs-active .lbs-modal {
+    transform: translateY(0) scale(1);
+}
+
+/* Header */
+.lbs-header {
+    padding: 18px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--lbs-border-color);
+    position: relative;
+}
+
+.lbs-title-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lbs-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.lbs-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    color: var(--lbs-text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.lbs-close-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--lbs-text-main);
+}
+
+/* Tabs Bar */
+.lbs-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px;
+    margin: 12px 20px 0;
+    border-radius: 12px;
+    gap: 4px;
+}
+
+.lbs-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--lbs-text-muted);
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.lbs-tab.lbs-active {
+    background: var(--lbs-bg-modal);
+    color: var(--lbs-primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Current Game Score Display */
+.lbs-score-banner {
+    background: linear-gradient(135deg, var(--lbs-primary-color), var(--lbs-primary-hover));
+    color: white;
+    margin: 14px 20px 0;
+    padding: 12px 18px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(255, 112, 67, 0.3);
+}
+
+.lbs-score-banner-label {
+    font-size: 13px;
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+.lbs-score-banner-val {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+}
+
+/* Submit Section */
+.lbs-submit-box {
+    margin: 12px 20px 0;
+    display: flex;
+    gap: 8px;
+}
+
+.lbs-input-name {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--lbs-border-color);
+    background: var(--lbs-bg-card);
+    color: var(--lbs-text-main);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.lbs-input-name:focus {
+    border-color: var(--lbs-primary-color);
+    box-shadow: 0 0 0 3px rgba(255, 112, 67, 0.2);
+}
+
+.lbs-btn-submit {
+    background: var(--lbs-primary-color);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+}
+
+.lbs-btn-submit:hover {
+    background: var(--lbs-primary-hover);
+}
+
+.lbs-btn-submit:active {
+    transform: scale(0.96);
+}
+
+.lbs-btn-submit:disabled {
+    background: #BDC3C7;
+    cursor: not-allowed;
+}
+
+/* Leaderboard Content List Area */
+.lbs-content {
+    padding: 12px 20px 16px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 180px;
+}
+
+.lbs-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.lbs-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--lbs-bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--lbs-border-color);
+    transition: transform 0.15s ease;
+}
+
+.lbs-item:hover {
+    transform: translateX(3px);
+}
+
+.lbs-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.lbs-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--lbs-text-muted);
+    flex-shrink: 0;
+}
+
+/* Medals for top 3 */
+.lbs-rank-1 { background: #FFD700; color: #7A5200; font-size: 16px; }
+.lbs-rank-2 { background: #C0C0C0; color: #4A4A4A; font-size: 16px; }
+.lbs-rank-3 { background: #CD7F32; color: #4A2700; font-size: 16px; }
+
+.lbs-player-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.lbs-player-name {
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lbs-player-meta {
+    font-size: 11px;
+    color: var(--lbs-text-muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.lbs-badge {
+    background: rgba(255, 112, 67, 0.12);
+    color: var(--lbs-primary-color);
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.lbs-score-val {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--lbs-primary-color);
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+/* Offline Notice Card */
+.lbs-offline-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    text-align: center;
+    background: var(--lbs-bg-card);
+    border-radius: 14px;
+    border: 1px dashed var(--lbs-border-color);
+}
+
+.lbs-offline-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.lbs-offline-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.lbs-offline-desc {
+    font-size: 13px;
+    color: var(--lbs-text-muted);
+    max-width: 260px;
+    line-height: 1.4;
+}
+
+/* Footer & Restart Button */
+.lbs-footer {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--lbs-border-color);
+    display: flex;
+    gap: 10px;
+}
+
+.lbs-btn-restart {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, #42A5F5, #1E88E5);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    transition: transform 0.1s, opacity 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.lbs-btn-restart:hover {
+    opacity: 0.95;
+}
+
+.lbs-btn-restart:active {
+    transform: scale(0.98);
+}
