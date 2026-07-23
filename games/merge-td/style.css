@@ -36,115 +36,252 @@ body, html {
     flex-direction: column;
 }
 
-/* 頂部資訊列 (考慮 iPhone 瀏海與 Safe Area) */
+/* 頂部資訊列 (固定於最上方) */
 #top-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
-    height: calc(46px + env(safe-area-inset-top, 0px));
-    padding-top: env(safe-area-inset-top, 0px);
-    background: rgba(18, 19, 28, 0.88);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, #1e2235 0%, #2a2f4a 50%, #1e2235 100%);
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    z-index: 100;
+    border-bottom: 1px solid rgba(100, 120, 200, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.top-bar-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-left: 12px;
-    padding-right: 12px;
-    z-index: 10;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.btn-pause-icon {
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: #FFF;
-    transition: background 0.2s;
-}
-
-.btn-pause-icon:active {
-    background: rgba(255, 255, 255, 0.3);
+    width: 100%;
+    gap: 6px;
 }
 
 .info-item {
     display: flex;
     align-items: center;
-    gap: 4px;
-    color: #FFF;
-    font-size: 13px;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.07);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 14px;
+    color: #e0e4f0;
     font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.info-item span:first-child {
+    font-size: 16px;
+}
+
+#val-score {
+    color: #ffd54f;
+}
+
+#val-coins {
+    color: #81c784;
+}
+
+#val-wave {
+    color: #64b5f6;
 }
 
 .hp-container {
-    width: 90px;
+    width: 60px;
     height: 10px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.4);
     border-radius: 5px;
     overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .hp-bar {
-    height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, #FF1744 0%, #00E676 100%);
-    transition: width 0.2s ease;
+    height: 100%;
+    background: linear-gradient(90deg, #ef5350, #ff7043);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 6px rgba(239, 83, 80, 0.4);
 }
 
-/* 主畫布 */
+.btn-top-action {
+    background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #FFF;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transition: transform 0.1s ease, filter 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-top-action:active {
+    transform: scale(0.92);
+}
+
+.btn-pause-icon {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-pause-icon:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* 中間畫布區域 (佔滿剩餘高度) */
+#canvas-wrapper {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
 #game-canvas {
     width: 100%;
     height: 100%;
+    display: block;
     touch-action: none;
 }
 
-/* 底部操作面板 */
-#bottom-controls {
+/* 側邊動作按鈕區 (固定在 Canvas 兩側) */
+#side-action-buttons {
     position: absolute;
-    bottom: 10px;
+    bottom: 0;
     left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-evenly;
-    padding: 0 10px;
+    right: 0;
+    height: 35%; /* 對應底部的合成區高度 */
+    pointer-events: none; /* 讓點擊穿透到 Canvas */
     z-index: 10;
 }
 
-.btn-game {
-    border: none;
+#side-action-buttons .btn-game {
+    position: absolute;
+    top: 50%;
+    margin-top: -50px;
+    pointer-events: auto;
+    width: 65px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.2;
+    padding: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 8px solid rgba(0, 0, 0, 0.4);
     outline: none;
-    border-radius: 12px;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 700;
     color: #FFF;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: transform 0.1s ease, filter 0.2s ease;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#side-action-buttons .btn-game:active {
+    transform: translateY(6px);
+    border-bottom-width: 2px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+#btn-delete.drag-hover {
+    transform: scale(1.1) translateY(-5px) !important;
+    border-bottom-width: 10px !important;
+    box-shadow: 0 15px 25px rgba(236, 72, 153, 0.6) !important;
+}
+
+.merge-cell {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    position: relative;
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 6px;
 }
 
-.btn-game:active {
-    transform: scale(0.95);
+.merge-block {
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    cursor: grab;
+    position: absolute;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.4);
+    z-index: 2;
+    touch-action: none; /* Prevent scroll on drag */
+    user-select: none;
+}
+.merge-block.dragging {
+    z-index: 100;
+    cursor: grabbing;
+}
+.merge-block.swapping {
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.btn-game:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    filter: grayscale(0.8);
-}
+
 
 .btn-summon {
+    right: 8px;
     background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
 }
 
-.btn-wave {
-    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+.btn-delete {
+    left: 8px;
+    background: radial-gradient(circle, #2a0845 0%, #000000 100%);
+    border: 1.5px solid #a855f7;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4), inset 0 0 8px rgba(168, 85, 247, 0.6);
+    color: #e9d5ff;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-delete::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent 0%, rgba(168, 85, 247, 0.3) 50%, transparent 100%);
+    animation: blackhole-spin 4s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes blackhole-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.btn-delete.drag-hover {
+    background: radial-gradient(circle, #4c1d95 0%, #090514 100%);
+    border-color: #f0abfc;
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.9), inset 0 0 15px rgba(240, 171, 252, 0.8);
+    transform: translateY(-50%) scale(1.1) !important;
 }
 
 /* Toast 提示條 */
@@ -170,3 +307,47 @@ body, html {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+
+/* 暫停覆蓋層 */
+#pause-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+#pause-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pause-content {
+    background: linear-gradient(135deg, rgba(35, 38, 58, 0.95) 0%, rgba(26, 28, 41, 0.95) 100%);
+    padding: 30px 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.pause-content h2 {
+    font-size: 24px;
+    margin: 0;
+    color: #f8fafc;
+    letter-spacing: 2px;
+}
+

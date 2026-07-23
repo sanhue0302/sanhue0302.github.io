@@ -22,8 +22,8 @@ class MergeTDCore {
         this.waveCountdown = 30; // 單位: 秒
         this.countdownTimer = 0; // 毫秒累積
 
-        // 合成區網格: 4 rows x 4 cols = 16 格 (滿足更多合成空間)
-        this.mergeGridRows = 4;
+        // 合成區網格: 3 rows x 4 cols = 12 格
+        this.mergeGridRows = 3;
         this.mergeGridCols = 4;
         this.mergeGrid = new Array(this.mergeGridRows * this.mergeGridCols).fill(null);
 
@@ -193,31 +193,25 @@ class MergeTDCore {
     }
 
     // 開始新一波敵人 (支援提前召喚波次 Early Wave Bonus)
-    startWave() {
+    startWave(isManual = false) {
         if (this.isGameOver) return { success: false };
 
         let earlyBonusGold = 0;
-        let isEarlyCall = false;
 
-        // 如果在戰鬥進行中或倒數中提前點擊下一波
-        if (this.isWaveRunning || this.waveCountdown > 0) {
-            if (this.waveCountdown > 0) {
-                // 依剩餘倒數秒數獎勵金幣 (每剩 1 秒 +2 金幣)
-                earlyBonusGold = this.waveCountdown * 2 + 10;
-                this.coins += earlyBonusGold;
-                isEarlyCall = true;
-            }
+        // 如果是手動按下「下一波」
+        if (isManual) {
+            // 固定獎勵 + 根據波次增加
+            earlyBonusGold = 50 + (this.wave * 10);
+            this.coins += earlyBonusGold;
+        }
+
+        // 如果遊戲已經開始，且是手動召喚，就直接推進波次
+        // 如果是剛開局的第一次，就先維持 wave 1
+        if (this.isWaveRunning && isManual) {
+            this.wave++;
         }
 
         this.isWaveRunning = true;
-        
-        // 增加波次計數
-        if (isEarlyCall && this.enemiesToSpawn.length === 0 && this.enemies.length === 0) {
-            // normal start
-        } else if (isEarlyCall) {
-            this.wave++; // 提前疊加新波次
-        }
-
         this.waveCountdown = 30; // 重置倒數
         this.countdownTimer = 0;
         
@@ -269,7 +263,7 @@ class MergeTDCore {
         // 將新敵人推入待生成隊列 (允許與現有敵人疊加生成)
         this.enemiesToSpawn.push(...newEnemies);
 
-        return { success: true, earlyBonusGold, isEarlyCall };
+        return { success: true, earlyBonusGold, isManual };
     }
 
     // 遊戲每幀狀態更新 (Update Loop)

@@ -10,43 +10,59 @@
 <body>
 
 <div id="game-container">
-    <!-- 頂部資訊條 -->
+    <!-- 1. 頂部固定資訊條 -->
     <div id="top-bar">
-        <div class="info-item">
-            <span>🏆</span>
-            <span id="val-score">0</span>
-        </div>
-        <div class="info-item">
-            <span>💰</span>
-            <span id="val-coins">150</span>
-        </div>
-        <div class="info-item">
-            <span>🌊 波次:</span>
-            <span id="val-wave">1</span>
-        </div>
-        <div class="info-item">
-            <span>🏰</span>
-            <div class="hp-container">
-                <div id="hp-bar-inner" class="hp-bar"></div>
+        <div class="top-bar-row">
+            <div class="info-item">
+                <span>🏆</span>
+                <span id="val-score">0</span>
+            </div>
+            <div class="info-item">
+                <span>💰</span>
+                <span id="val-coins">150</span>
+            </div>
+            <div class="info-item">
+                <span>🏰</span>
+                <div class="hp-container">
+                    <div id="hp-bar-inner" class="hp-bar"></div>
+                </div>
             </div>
         </div>
-        <button id="btn-pause" class="btn-pause-icon" aria-label="Pause">⏸️</button>
+        <div class="top-bar-row">
+            <div class="info-item">
+                <span>🌊</span>
+                <span id="val-wave">1</span>
+            </div>
+            <button id="btn-start-wave" class="btn-top-action">▶️ 下一波</button>
+            <button id="btn-pause" class="btn-pause-icon" aria-label="Pause">⏸️</button>
+        </div>
     </div>
 
     <!-- Toast 提示 -->
     <div id="game-toast">提示訊息</div>
 
-    <!-- 主遊戲 Canvas -->
-    <canvas id="game-canvas"></canvas>
+    <!-- 暫停覆蓋層 -->
+    <div id="pause-overlay">
+        <div class="pause-content">
+            <h2>遊戲暫停</h2>
+            <button id="btn-resume" class="btn-game btn-summon">▶️ 繼續遊戲</button>
+        </div>
+    </div>
 
-    <!-- 底部控制按鈕 -->
-    <div id="bottom-controls">
-        <button id="btn-summon" class="btn-game btn-summon">
-            <span>✨ 召喚角色 (<span id="summon-cost">50</span>💰)</span>
-        </button>
-        <button id="btn-start-wave" class="btn-game btn-wave">
-            <span>▶️ 開始下一波</span>
-        </button>
+        <!-- 2. 中間 Canvas 遊戲區域 (包含上地圖、下合成區) -->
+    <div id="canvas-wrapper">
+        <canvas id="game-canvas"></canvas>
+        <canvas id="drag-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100;"></canvas>
+        
+        <!-- 側邊動作按鈕區 -->
+        <div id="side-action-buttons">
+            <button id="btn-delete" class="btn-game btn-delete">
+                <span>🕳️<br>回收</span>
+            </button>
+            <button id="btn-summon" class="btn-game btn-summon">
+                <span>✨<br>召喚<br>(<span id="summon-cost">50</span>)</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -57,8 +73,8 @@
 <script src="../../assets/js/leaderboard-system.js"></script>
 
 <!-- 遊戲核心與渲染 Engine -->
-<script src="merge-td-core.js"></script>
-<script src="merge-td-render.js"></script>
+<script src="merge-td-core.js?v=27"></script>
+<script src="merge-td-render.js?v=27"></script>
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
@@ -76,6 +92,10 @@
         const canvas = document.getElementById('game-canvas');
         const core = new MergeTDCore();
         const render = new MergeTDRender(canvas, core, leaderboard);
+        
+        // 為了 debug 方便暴露到 window
+        window.gameCore = core;
+        window.renderCore = render;
     });
 </script>
 
