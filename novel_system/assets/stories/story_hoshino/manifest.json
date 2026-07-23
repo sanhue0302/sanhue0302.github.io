@@ -1,0 +1,11 @@
+{
+  "id": "story_hoshino",
+  "title": "星野同級生 ～她的全部都屬於我～",
+  "author": "同級生團隊",
+  "cover": "assets/stories/story_hoshino/assets/cover.jpg",
+  "description": "國民偶像星野燈在台前閃耀動人，私底下卻隱藏著不可告人的焦慮與祕密...",
+  "endingsCount": 5,
+  "themeClass": "theme-hoshino",
+  "themeCss": "assets/stories/story_hoshino/theme.css",
+  "supportsPlayerName": true
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750" viewBox="0 0 500 750">
+    <g transform="translate(100, 50)">
+      <!-- Hair back -->
+      <path d="M 50 150 Q 150 20 250 150 Q 300 400 280 600 Q 150 650 20 600 Z" fill="#4c1d95"/>
+      <!-- Body Outfit -->
+      <path d="M 70 380 Q 150 350 230 380 L 260 700 L 40 700 Z" fill="#2e1065" stroke="#ec4899" stroke-width="3"/>
+      <!-- Ribbon/Accent -->
+      <polygon points="120,400 150,430 180,400 150,380" fill="#ec4899"/>
+      <!-- Face -->
+      <ellipse cx="150" cy="220" rx="75" ry="90" fill="#fde047" opacity="0.3"/>
+      <ellipse cx="150" cy="210" rx="70" ry="85" fill="#fff1f2"/>
+      <!-- Eyes -->
+      
+  <ellipse cx="115" cy="210" rx="14" ry="20" fill="#701a75"/>
+  <circle cx="118" cy="204" r="5" fill="#ffffff"/>
+  <ellipse cx="185" cy="210" rx="14" ry="20" fill="#701a75"/>
+  <circle cx="188" cy="204" r="5" fill="#ffffff"/>
+
+      <!-- Blush -->
+      <ellipse cx="105" cy="235" rx="18" ry="8" fill="#f43f5e" opacity="0.4"/>
+      <ellipse cx="195" cy="235" rx="18" ry="8" fill="#f43f5e" opacity="0.4"/>
+      <!-- Mouth -->
+      <path d="M 135 255 Q 150 270 165 255" fill="none" stroke="#e11d48" stroke-width="4" stroke-linecap="round"/>
+      <!-- Hair front / bangs -->
+      <path d="M 70 170 Q 150 120 230 170 Q 180 200 150 160 Q 120 200 70 170 Z" fill="#581c87"/>
+      <!-- Star Hairpin -->
+      <polygon points="210,140 215,150 225,150 217,157 220,167 210,160 200,167 203,157 195,150 205,150" fill="#fef08a"/>
+    </g>
+  </svg>

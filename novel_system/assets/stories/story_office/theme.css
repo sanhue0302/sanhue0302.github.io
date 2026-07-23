@@ -1,0 +1,29 @@
+/* Office Story Custom UI Theme (Sleek Modern Luxury Workplace) */
+.theme-office #textbox {
+  background: linear-gradient(135deg, rgba(20, 24, 38, 0.94), rgba(35, 30, 55, 0.96)) !important;
+  border: 2px solid rgba(168, 85, 247, 0.6) !important;
+  box-shadow: 0 12px 36px rgba(168, 85, 247, 0.25) !important;
+}
+
+.theme-office #dialogue-text {
+  color: #f3e8ff !important;
+  font-weight: 500;
+}
+
+.theme-office #speaker-badge {
+  background: linear-gradient(135deg, #9333ea, #ec4899) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4) !important;
+}
+
+.theme-office .choice-button {
+  background: linear-gradient(135deg, rgba(30, 27, 46, 0.95), rgba(45, 38, 70, 0.95)) !important;
+  border: 1.5px solid #a855f7 !important;
+  color: #f3e8ff !important;
+}
+
+.theme-office .choice-button:hover {
+  background: linear-gradient(135deg, #9333ea, #ec4899) !important;
+  color: #ffffff !important;
+  border-color: #ec4899 !important;
+}

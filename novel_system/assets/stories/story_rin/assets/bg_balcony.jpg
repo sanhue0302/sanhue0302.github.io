@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#nightSky)"/>
+  <!-- Moon -->
+  <circle cx="1500" cy="220" r="100" fill="#f8fafc"/>
+  <circle cx="1500" cy="220" r="180" fill="rgba(248, 250, 252, 0.15)"/>
+  <!-- Distant City Lights -->
+  <g fill="#fef08a" opacity="0.7">
+    <rect x="200" y="600" width="40" height="150"/>
+    <rect x="280" y="550" width="60" height="200"/>
+    <rect x="500" y="580" width="50" height="170"/>
+    <rect x="1100" y="560" width="80" height="190"/>
+    <rect x="1250" y="620" width="45" height="130"/>
+  </g>
+  <!-- Balcony Fence -->
+  <rect x="0" y="750" width="1920" height="40" fill="#334155"/>
+  <g fill="#475569">
+    <rect x="100" y="790" width="20" height="290"/>
+    <rect x="300" y="790" width="20" height="290"/>
+    <rect x="500" y="790" width="20" height="290"/>
+    <rect x="700" y="790" width="20" height="290"/>
+    <rect x="900" y="790" width="20" height="290"/>
+    <rect x="1100" y="790" width="20" height="290"/>
+    <rect x="1300" y="790" width="20" height="290"/>
+    <rect x="1500" y="790" width="20" height="290"/>
+    <rect x="1700" y="790" width="20" height="290"/>
+  </g>
+  <rect x="0" y="880" width="1920" height="200" fill="#0f172a" opacity="0.95"/>
+</svg>

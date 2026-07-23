@@ -1,0 +1,11 @@
+{
+  "id": "story_office",
+  "title": "職場重啟 ～逆襲黑絲經理與冰山總裁～",
+  "author": "職場逆襲團隊",
+  "cover": "assets/stories/story_office/assets/cover.jpg",
+  "description": "重生回到入職第一天！面對刁難的黑絲經理與高冷冰山總裁，看你如何用機智與手段登上帝國權力王座...",
+  "endingsCount": 3,
+  "themeClass": "theme-office",
+  "themeCss": "assets/stories/story_office/theme.css",
+  "supportsPlayerName": true
+}

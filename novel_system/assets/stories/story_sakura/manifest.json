@@ -1,0 +1,11 @@
+{
+  "id": "story_sakura",
+  "title": "櫻花下的再會",
+  "author": "劇本組",
+  "cover": "assets/stories/story_sakura/assets/cover.jpg",
+  "description": "轉學後的第一天，在熟悉的校門口遇到了童年玩伴櫻...",
+  "endingsCount": 3,
+  "themeClass": "theme-sakura",
+  "themeCss": "assets/stories/story_sakura/theme.css",
+  "supportsPlayerName": true
+}

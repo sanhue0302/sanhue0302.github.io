@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#87ceeb"/>
+      <stop offset="60%" stop-color="#e0f7fa"/>
+      <stop offset="100%" stop-color="#fff0f5"/>
+    </linearGradient>
+    <linearGradient id="schoolWall" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#d9cfc1"/>
+      <stop offset="100%" stop-color="#b8a99a"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky -->
+  <rect width="1920" height="1080" fill="url(#skyGrad)"/>
+  <!-- Sun Rays -->
+  <circle cx="1600" cy="200" r="300" fill="rgba(255, 255, 255, 0.4)"/>
+  <!-- School Building Silhouette -->
+  <rect x="300" y="300" width="1320" height="500" fill="url(#schoolWall)"/>
+  <rect x="850" y="220" width="220" height="80" fill="#a08c7d"/>
+  <!-- Clock -->
+  <circle cx="960" cy="260" r="28" fill="#ffffff" stroke="#5a4e44" stroke-width="4"/>
+  <!-- Windows -->
+  <g fill="#607d8b" opacity="0.7">
+    <rect x="400" y="350" width="120" height="90"/>
+    <rect x="600" y="350" width="120" height="90"/>
+    <rect x="1200" y="350" width="120" height="90"/>
+    <rect x="1400" y="350" width="120" height="90"/>
+    <rect x="400" y="500" width="120" height="90"/>
+    <rect x="600" y="500" width="120" height="90"/>
+    <rect x="1200" y="500" width="120" height="90"/>
+    <rect x="1400" y="500" width="120" height="90"/>
+  </g>
+  <!-- Gate Pillars -->
+  <rect x="220" y="550" width="120" height="380" fill="#8d7d6f"/>
+  <rect x="1580" y="550" width="120" height="380" fill="#8d7d6f"/>
+  <rect x="200" y="530" width="160" height="30" fill="#5a4e44"/>
+  <rect x="1560" y="530" width="160" height="30" fill="#5a4e44"/>
+  <!-- Gate Plate -->
+  <rect x="240" y="620" width="80" height="180" fill="#3e2723"/>
+  <text x="280" y="720" font-family="'Klee One', serif" font-weight="700" font-size="32" fill="#d7ccc8" text-anchor="middle" writing-mode="tb">私立學園</text>
+  <!-- Road Ground -->
+  <path d="M0,850 L1920,850 L1920,1080 L0,1080 Z" fill="#cfd8dc"/>
+  <path d="M0,920 L1920,920 L1920,1080 L0,1080 Z" fill="#b0bec5"/>
+  <!-- Cherry Blossom Trees Overhead -->
+  <ellipse cx="100" cy="200" rx="350" ry="250" fill="#ffb7c5" opacity="0.85"/>
+  <ellipse cx="1800" cy="180" rx="380" ry="240" fill="#ffb7c5" opacity="0.85"/>
+  <ellipse cx="350" cy="150" rx="250" ry="180" fill="#ff9ebb" opacity="0.8"/>
+  <ellipse cx="1600" cy="120" rx="280" ry="190" fill="#ff9ebb" opacity="0.8"/>
+</svg>
