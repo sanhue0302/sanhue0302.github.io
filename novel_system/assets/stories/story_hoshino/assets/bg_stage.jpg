@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
-  <rect width="1280" height="720" fill="#1e1b4b"/>
-  <polygon points="200,720 400,0 880,0 1080,720" fill="rgba(244,114,182,0.15)"/>
-  <polygon points="500,720 600,0 680,0 780,720" fill="rgba(192,132,252,0.2)"/>
-  <circle cx="640" cy="200" r="150" fill="#e879f9" opacity="0.2"/>
-  <text x="640" y="660" fill="rgba(255,255,255,0.4)" font-size="28" font-family="sans-serif" text-anchor="middle">★ STAGE LIGHTS ★</text>
-</svg>
