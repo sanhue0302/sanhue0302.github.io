@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>🍰 甜點消消樂</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:18px;background:linear-gradient(145deg,#fff7ef,#fce3ee);font-family:ui-rounded,system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#69445a}
+#sweet-game{width:min(100%,440px);user-select:none;-webkit-user-select:none}
+.sg-panel{position:relative;background:linear-gradient(160deg,#fff3df,#ffe8f0);padding:17px;border-radius:23px;box-shadow:0 12px 40px #b87f9633}
+.sg-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sg-title{font-weight:900;font-size:23px;color:#a44176}.sg-sub{font-size:12px;color:#9a7080;margin-top:2px}
+.sg-tag{border-radius:999px;background:#fff;padding:8px 12px;color:#a44176;font-weight:800;font-size:13px}
+.sg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.sg-stat{background:#ffffffbd;border-radius:14px;padding:10px 5px;text-align:center}.sg-stat small{display:block;color:#9c7284;font-size:11px;font-weight:700}.sg-stat strong{font-size:21px;color:#7b3c66;font-variant-numeric:tabular-nums}
+.sg-track{height:11px;border-radius:15px;overflow:hidden;background:#e9cbd6;margin:12px 0 5px}.sg-progress{height:100%;background:linear-gradient(90deg,#ff9e4f,#f45a93);width:0%;transition:width .25s}.sg-hint{text-align:center;font-size:12px;color:#a46b82;font-weight:700;min-height:20px}
+.sg-board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(9,minmax(0,1fr));gap:4px;padding:8px;border:3px solid #e9b1c7;border-radius:19px;background:#f6cedd;margin-top:9px;aspect-ratio:8/9}
+.sg-tile{min-width:0;min-height:0;border:0;border-radius:9px;background:#fff9f7;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:clamp(19px,5.7vw,29px);box-shadow:0 3px 0 #b87f9660;transition:transform .1s,background .1s;padding:0;touch-action:manipulation}.sg-tile:active{transform:scale(.86)}.sg-tile.pop{animation:sgpop .23s ease-out}@keyframes sgpop{50%{transform:scale(.65);opacity:.3}}
+.sg-tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.sg-tool{border:1px solid #f1c3d3;background:#fffafc;border-radius:13px;color:#8e4a73;padding:9px 3px;font-weight:800;font-size:12px;cursor:pointer}.sg-tool:disabled{opacity:.4;cursor:default}.sg-tool.active{background:#a44176;color:white}
+.sg-foot{display:flex;justify-content:space-between;align-items:center;margin-top:13px;gap:8px}.sg-button{border:0;background:#ad477b;color:white;font-weight:800;padding:10px 15px;border-radius:13px;cursor:pointer}.sg-message{font-size:12px;color:#905e76;font-weight:700;text-align:center;flex:1;min-width:0}
+.sg-overlay{display:none;position:absolute;inset:0;background:#613047a8;border-radius:23px;align-items:center;justify-content:center;padding:22px;z-index:5}.sg-overlay.visible{display:flex}.sg-modal{width:100%;background:#fff9f2;border-radius:22px;padding:26px 18px;text-align:center;color:#88456b;box-shadow:0 12px 32px #552b4050}.sg-modal h2{font-size:26px;font-weight:900;margin:7px 0}.sg-modal p{font-size:14px;line-height:1.7;margin:8px 0 20px}.sg-modal button{border:0;background:#b4437b;color:white;border-radius:15px;padding:13px 23px;font-weight:900;cursor:pointer}
+.sg-note{text-align:center;font-size:12px;color:#9b6c81;margin-top:12px}
+@media(max-width:390px){body{padding:8px}.sg-panel{padding:11px}.sg-board{gap:3px;padding:5px}.sg-tile{border-radius:6px}}
+</style>
+</head>
+<body>
+<main id="sweet-game">
+ <div class="sg-panel">
+  <div class="sg-head"><div><div class="sg-title">🍰 甜點消消樂</div><div class="sg-sub">甜甜的闖關時光</div></div><div class="sg-tag" id="sg-level">第 1 關</div></div>
+  <div class="sg-stats"><div class="sg-stat"><small>本關分數</small><strong id="sg-score">0</strong></div><div class="sg-stat"><small>剩餘步數</small><strong id="sg-moves">24</strong></div><div class="sg-stat"><small>最高關卡</small><strong id="sg-best">1</strong></div></div>
+  <div class="sg-track"><div class="sg-progress" id="sg-progress"></div></div><div class="sg-hint" id="sg-hint"></div>
+  <div class="sg-board" id="sg-board" aria-label="甜點消除遊戲棋盤"></div>
+  <div class="sg-tools"><button type="button" class="sg-tool" data-tool="hammer">🔨 敲敲 <span id="sg-hammer">×2</span></button><button type="button" class="sg-tool" data-tool="shuffle">🔀 洗牌 <span id="sg-shuffle">×2</span></button><button type="button" class="sg-tool" data-tool="rainbow">🌈 彩虹 <span id="sg-rainbow">×1</span></button></div>
+  <div class="sg-foot"><button type="button" class="sg-button" id="sg-restart">重玩本關</button><div class="sg-message" id="sg-msg" aria-live="polite"></div></div>
+  <div class="sg-overlay" id="sg-overlay"><div class="sg-modal"><div style="font-size:48px" id="sg-emoji">🎉</div><h2 id="sg-modal-title">過關啦！</h2><p id="sg-modal-desc"></p><button type="button" id="sg-next">下一關 →</button></div></div>
+ </div>
+ <div class="sg-note">點擊 2 個以上相連甜點即可消除 · 過關可獲得道具</div>
+</main>
+<script>
+(() => {
+'use strict';
+const root=document.getElementById('sweet-game');
+const $=id=>document.getElementById(id);
+const icons=['🍓','🍋','🍇','🧁','🍬','🍩'];
+const key='sweetpop_standalone_v1';
+let saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+let level=Math.max(1,Number(saved.level)||1),best=Math.max(level,Number(saved.best)||1);
+let tools={hammer:2,shuffle:2,rainbow:1,...saved.tools};
+let grid=[],score=0,moves=24,goal=1200,selected='',busy=false,completed=false,gameToken=0;
+const rand=n=>Math.floor(Math.random()*n);
+const colors=()=>Math.min(4+Math.floor((level-1)/4),6);
+function store(){try{localStorage.setItem(key,JSON.stringify({level,best,tools}))}catch(e){}}
+function groupAt(idx){
+ const value=grid[idx],seen=new Set([idx]),queue=[idx];
+ while(queue.length){const p=queue.pop(),r=Math.floor(p/8),c=p%8;
+  for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){const rr=r+dr,cc=c+dc,n=rr*8+cc;
+   if(rr>=0&&rr<9&&cc>=0&&cc<8&&!seen.has(n)&&grid[n]===value){seen.add(n);queue.push(n)}
+  }
+ }return [...seen];
+}
+function hasMove(){return grid.some((v,i)=>(i%8<7&&grid[i+1]===v)||(i<64&&grid[i+8]===v))}
+function newGrid(){do{grid=Array.from({length:72},()=>rand(colors()))}while(!hasMove())}
+function paint(){
+ const board=$('sg-board');board.innerHTML='';
+ grid.forEach((v,i)=>{const b=document.createElement('button');b.type='button';b.className='sg-tile';b.textContent=icons[v];b.setAttribute('aria-label',icons[v]+' 甜點');b.addEventListener('click',()=>tap(i));board.appendChild(b)});
+ $('sg-level').textContent='第 '+level+' 關';$('sg-score').textContent=score.toLocaleString();$('sg-moves').textContent=moves;$('sg-best').textContent=best;
+ $('sg-progress').style.width=Math.min(100,score/goal*100)+'%';
+ $('sg-hint').textContent='🎯 目標 '+goal.toLocaleString()+' 分 · '+(score>=goal?'已達標！':'還差 '+Math.max(0,goal-score).toLocaleString()+' 分');
+ for(const name of ['hammer','shuffle','rainbow']){const b=root.querySelector('[data-tool="'+name+'"]');$('sg-'+name).textContent='×'+tools[name];b.disabled=tools[name]<=0||busy||completed;b.classList.toggle('active',selected===name)}
+}
+function msg(t){$('sg-msg').textContent=t}
+function start(){gameToken++;score=0;moves=Math.max(20,26-Math.floor(level/3));goal=Math.round((1050+level*160+Math.floor(level/4)*110)/50)*50;selected='';busy=false;completed=false;$('sg-overlay').classList.remove('visible');newGrid();paint();msg('湊越多相同甜點，分數越高！');store()}
+function collapse(indices){
+ const deleted=new Set(indices);
+ for(let c=0;c<8;c++){const vals=[];for(let r=8;r>=0;r--){const i=r*8+c;if(!deleted.has(i))vals.push(grid[i])}
+  for(let r=8;r>=0;r--){grid[r*8+c]=(8-r<vals.length)?vals[8-r]:rand(colors())}
+ }
+}
+function tap(i){
+ if(busy||completed)return;
+ const special=selected;
+ if(special==='shuffle')return;
+ const g=special==='hammer'?[i]:special==='rainbow'?grid.map((v,p)=>v===grid[i]?p:-1).filter(v=>v>=0):groupAt(i);
+ if(g.length<2&&!special){msg('至少要有 2 個相連的甜點唷！');return}
+ if(special){if(tools[special]<=0)return;tools[special]--;selected=''}
+ moves--;const gained=special==='hammer'?50:special==='rainbow'?g.length*g.length*7:g.length*g.length*15;
+ score+=gained;busy=true;
+ const cells=$('sg-board').children;g.forEach(x=>cells[x]?.classList.add('pop'));
+ msg((g.length>=7?'✨ 超強連擊！ ':g.length>=4?'🌟 漂亮！ ':'')+'+'+gained+' 分');
+ const token=gameToken;
+ setTimeout(()=>{
+  if(token!==gameToken)return;
+  collapse(g);busy=false;
+  if(score>=goal){complete(true);return}
+  if(moves<=0){complete(false);return}
+  if(!hasMove()){newGrid();msg('🎁 自動重新排列，繼續玩！')}
+  paint();store();
+ },230);
+}
+function complete(win){
+ completed=true;paint();$('sg-overlay').classList.add('visible');
+ if(win){$('sg-emoji').textContent=moves>=9?'👑':'🎉';$('sg-modal-title').textContent='甜點大師過關！';
+  $('sg-modal-desc').textContent='獲得 '+score.toLocaleString()+' 分，剩下 '+moves+' 步！獎勵：敲敲 +1、洗牌 +1'+(level%3===0?'、彩虹 +1':'')+'。';
+  tools.hammer++;tools.shuffle++;if(level%3===0)tools.rainbow++;
+  level++;best=Math.max(best,level);$('sg-next').textContent='挑戰第 '+level+' 關 →';
+ }else{$('sg-emoji').textContent='🥺';$('sg-modal-title').textContent='差一點點！';
+  $('sg-modal-desc').textContent='本次拿到 '+score.toLocaleString()+' 分，目標是 '+goal.toLocaleString()+' 分。再試一次，記得善用道具！';$('sg-next').textContent='再挑戰一次 ↻';
+ }store();
+}
+root.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{
+ if(busy||completed)return;const n=b.dataset.tool;if(tools[n]<=0)return;
+ if(n==='shuffle'){tools.shuffle--;for(let k=grid.length-1;k>0;k--){const j=rand(k+1);[grid[k],grid[j]]=[grid[j],grid[k]]}if(!hasMove())newGrid();selected='';paint();msg('🔀 甜點已重新洗牌！');store()}
+ else{selected=selected===n?'':n;paint();msg(selected==='hammer'?'🔨 點一個甜點，直接敲掉！':selected==='rainbow'?'🌈 點一個甜點，消除所有同類！':'已取消道具')}
+}));
+$('sg-next').addEventListener('click',start);
+$('sg-restart').addEventListener('click',()=>{if(!busy)start()});
+start();
+})();
+</script>
+</body>
+</html>
